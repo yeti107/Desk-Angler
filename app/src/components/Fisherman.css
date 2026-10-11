@@ -1,0 +1,75 @@
+.fisherman-scene {
+  display: block;
+  width: 100%;
+  max-width: 384px;
+  margin: 1rem auto;
+  border-radius: 8px;
+}
+
+.fisherman-scene.paused {
+  filter: grayscale(0.8);
+  opacity: 0.7;
+}
+
+/* steps(1) makes each movement jump a whole pixel instead of sliding. */
+.bobber {
+  animation: bob 2s steps(1) infinite;
+}
+
+.bobber.bitten {
+  animation:
+    dip 1.2s steps(1) 1,
+    bob 2s steps(1) 1.2s infinite;
+}
+
+.bite {
+  animation: bite-flash 1.5s steps(1) forwards;
+}
+
+@keyframes bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(1px);
+  }
+}
+
+@keyframes dip {
+  0% {
+    transform: translateY(0);
+  }
+  25% {
+    transform: translateY(3px);
+  }
+  50% {
+    transform: translateY(1px);
+  }
+  75% {
+    transform: translateY(3px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+@keyframes bite-flash {
+  0%,
+  40%,
+  80% {
+    opacity: 1;
+  }
+  20%,
+  60%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bobber,
+  .bobber.bitten {
+    animation: none;
+  }
+}
