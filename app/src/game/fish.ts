@@ -17,6 +17,10 @@ export type Fish = {
   weight: number;
 };
 
+export function getFish(fishId: string) {
+  return FISH.find((fish) => fish.id === fishId);
+}
+
 // Placeholder fish until the real roster is designed.
 export const FISH: Fish[] = [
   { id: "minnow", name: "Minnow", rarity: "common", weight: 1 },
