@@ -1,5 +1,5 @@
 import { loadJson, saveJson } from "../storage";
-import type { Fish } from "./fish";
+import { type Fish, RARITY_PRICES, getFish } from "./fish";
 
 // One individual fish the player caught. Each catch is its own record, not a
 // count per species, so a single fish can later be sold or traded.
@@ -37,4 +37,12 @@ export function loadInventory() {
 
 export function saveInventory(inventory: CaughtFish[]) {
   saveJson(INVENTORY_KEY, inventory);
+}
+
+export function getPrice(caught: CaughtFish): number {
+  const fish = getFish(caught.fishId);
+  if (!fish) {
+    return 0;
+  }
+  return RARITY_PRICES[fish.rarity];
 }
