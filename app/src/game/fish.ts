@@ -32,3 +32,11 @@ export const FISH: Fish[] = [
   { id: "catfish", name: "Catfish", rarity: "rare", weight: 1 },
   { id: "golden-koi", name: "Golden Koi", rarity: "legendary", weight: 1 },
 ];
+
+//pricing for fish
+export const RARITY_PRICES: Record<Rarity, number> = {
+  common: 20,
+  uncommon: 30,
+  rare: 45,
+  legendary: 100,
+}
