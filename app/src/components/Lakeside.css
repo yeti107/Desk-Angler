@@ -1,0 +1,182 @@
+/* Pinned to the bottom of the window, behind nothing and clickable through. */
+.lakeside {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 120px;
+  pointer-events: none;
+}
+
+.lakeside .water {
+  fill: var(--water);
+}
+
+.lakeside .water-edge,
+.lakeside .wave {
+  fill: var(--water-light);
+}
+
+.lakeside .dock {
+  fill: #8b5a2b;
+}
+
+.lakeside .dock-post {
+  fill: #6b4421;
+}
+
+.lakeside .bucket {
+  fill: #7d8c96;
+}
+
+.lakeside .bucket-rim {
+  fill: #5d6a72;
+}
+
+.lakeside .fish-tail {
+  fill: #e67e22;
+}
+
+.lakeside .bank {
+  fill: var(--bank);
+}
+
+.lakeside .grass,
+.lakeside .reed {
+  fill: var(--grass);
+}
+
+.lakeside .cattail {
+  fill: #6b4421;
+}
+
+/* Waves slide left by one repeat (25 units), then loop. steps() makes them
+   move a whole pixel at a time, like the fisherman. */
+.waves-slow {
+  animation: waves 14s steps(25) infinite;
+}
+
+.waves-fast {
+  animation: waves 8s steps(25) infinite;
+}
+
+@keyframes waves {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-25px);
+  }
+}
+
+/* Reed tips lean one pixel and back. */
+.reed-tip {
+  animation: sway 3s steps(1) infinite;
+}
+
+@keyframes sway {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(1px);
+  }
+}
+
+/* The jumping fish. One loop is 9 s: the jump itself takes the first
+   ~0.8 s, and the fish waits under the water for the rest. */
+.lakeside .fish-body {
+  fill: #e8a23a;
+}
+
+.lakeside .fish-eye {
+  fill: #3a2410;
+}
+
+.jumping-fish {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: jump 9s infinite;
+  animation-timing-function: steps(3);
+}
+
+@keyframes jump {
+  0% {
+    transform: translate(0, 6px) rotate(-40deg);
+  }
+  1.5% {
+    transform: translate(2px, -3px) rotate(-35deg);
+  }
+  3% {
+    transform: translate(5px, -8px) rotate(-10deg);
+  }
+  4.5% {
+    transform: translate(8px, -8px) rotate(15deg);
+  }
+  6% {
+    transform: translate(11px, -2px) rotate(40deg);
+  }
+  8%,
+  100% {
+    transform: translate(12px, 6px) rotate(45deg);
+  }
+}
+
+.splash {
+  opacity: 0;
+}
+
+.lakeside .splash-drop {
+  fill: #ffffff;
+}
+
+.splash-out {
+  animation: splash-out 9s steps(1) infinite;
+}
+
+.splash-in {
+  animation: splash-in 9s steps(1) infinite;
+}
+
+/* Each splash shows for a moment: as the fish leaves, and as it lands. */
+@keyframes splash-out {
+  0%,
+  4%,
+  100% {
+    opacity: 0;
+  }
+  0.5% {
+    opacity: 1;
+  }
+}
+
+@keyframes splash-in {
+  0%,
+  6.5%,
+  100% {
+    opacity: 0;
+  }
+  7% {
+    opacity: 1;
+  }
+  10% {
+    opacity: 0;
+  }
+}
+
+/* Respect the macOS "Reduce motion" setting. */
+@media (prefers-reduced-motion: reduce) {
+  .waves-slow,
+  .waves-fast,
+  .reed-tip,
+  .jumping-fish,
+  .splash-out,
+  .splash-in {
+    animation: none;
+  }
+
+  .jumping-fish {
+    display: none;
+  }
+}

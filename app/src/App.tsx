@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
+import "./App.css";
 import Collection from "./components/Collection";
 import DistractionSettings from "./components/DistractionSettings";
 import Fisherman from "./components/Fisherman";
+import FishSprite from "./components/FishSprite";
+import Lakeside from "./components/Lakeside";
 import Market from "./components/Market";
 import {
   loadDistractions,
@@ -15,6 +18,7 @@ import { getFish } from "./game/fish";
 import { rollCatchGap, rollFish } from "./game/fishing";
 import {
   createCatch,
+  getPrice,
   loadInventory,
   saveInventory,
   type CaughtFish,
@@ -32,7 +36,14 @@ import { onTogglePauseRequest, publishSessionInfo } from "./widgetBridge";
 
 type SessionState = "idle" | "running" | "ended";
 // Which screen to show while no session is running.
-type Page = "home" | "collection" | "market";
+type Page = "home" | "collection" | "market" | "settings";
+
+const TABS: { page: Page; label: string }[] = [
+  { page: "home", label: "Home" },
+  { page: "collection", label: "Collection" },
+  { page: "market", label: "Market" },
+  { page: "settings", label: "Settings" },
+];
 
 function formatTime(totalSeconds: number) {
   const minutes = Math.floor(totalSeconds / 60);
@@ -160,91 +171,156 @@ function App() {
     setSession("ended");
   }
 
+  // Sells fish and adds their price to the player's gold. `selection` maps a
+  // species id to how many of that species to sell. The newest fish of each
+  // species are sold first.
+  function sellFish(selection: Record<string, number>) {
+    const sold: CaughtFish[] = [];
+
+    for (const [fishId, quantity] of Object.entries(selection)) {
+      const held = inventory.filter((caught) => caught.fishId === fishId);
+      // New catches are added to the end of the inventory, so the newest fish
+      // are at the end of `held`. Math.max stops the start going below 0 if
+      // the quantity is more than the player holds.
+      const start = Math.max(held.length - quantity, 0);
+      sold.push(...held.slice(start));
+    }
+
+    const soldIds = new Set(sold.map((caught) => caught.id));
+    const earned = sold.reduce((sum, caught) => sum + getPrice(caught), 0);
+
+    setInventory((previous) =>
+      previous.filter((caught) => !soldIds.has(caught.id)),
+    );
+    setGold((previous) => previous + earned);
+  }
+
   return (
-    <div>
-      <h1>Desk Angler</h1>
+    <div className="app">
+      <header className="app-header">
+        <h1>Desk Angler</h1>
+        <div className="gold">{gold} gold</div>
+      </header>
 
-      {cameraError && <div role="alert">{cameraError}</div>}
-
-      {session === "idle" && page === "collection" && (
-        <Collection
-          inventory={inventory}
-          discoveries={discoveries}
-          onBack={() => setPage("home")}
-        />
+      {session === "idle" && (
+        <nav className="tabs">
+          {TABS.map((tab) => (
+            <button
+              key={tab.page}
+              className={page === tab.page ? "tab active" : "tab"}
+              aria-current={page === tab.page ? "page" : undefined}
+              onClick={() => setPage(tab.page)}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </nav>
       )}
 
-      {session === "idle" && page === "market" && (
-        <Market
-          gold={gold}
-          inventory={inventory}
-          onBack={() => setPage("home")}
-        />
-      )}
-
-      {session === "idle" && page === "home" && (
-        <div>
-          <div>Gold: {gold}</div>
-          <button onClick={startSession}>Start Session</button>
-          <button onClick={() => setPage("collection")}>Collection</button>
-          <button onClick={() => setPage("market")}>Market</button>
-          <DistractionSettings
-            distractions={distractions}
-            onChange={setDistractions}
-          />
+      {cameraError && (
+        <div className="alert" role="alert">
+          {cameraError}
         </div>
       )}
 
-      {session === "running" && (
-        <div>
-          <Fisherman isFishing={isFishing} biteCount={biteCount} />
-          <div>{isFishing ? "Fishing" : `Paused: ${pausedReason}`}</div>
-          <div>Focused time: {formatTime(focusedSeconds)}</div>
-          <div>Fish in the bucket: {biteCount}</div>
-
-          <button onClick={() => setManuallyPaused(!manuallyPaused)}>
-            {manuallyPaused ? "Resume" : "Pause"}
+      {session === "idle" && page === "home" && (
+        <div className="home">
+          <p className="muted">
+            Start a session and the fisherman fishes while you focus.
+          </p>
+          <button className="primary start-button" onClick={startSession}>
+            Start Session
           </button>
-          <button onClick={endSession}>End Session</button>
+          <Lakeside />
+        </div>
+      )}
+
+      {session === "idle" && page === "collection" && (
+        <Collection inventory={inventory} discoveries={discoveries} />
+      )}
+
+      {session === "idle" && page === "market" && (
+        <Market inventory={inventory} onSell={sellFish} />
+      )}
+
+      {session === "idle" && page === "settings" && (
+        <DistractionSettings
+          distractions={distractions}
+          onChange={setDistractions}
+        />
+      )}
+
+      {session === "running" && (
+        <div className="session">
+          <Fisherman isFishing={isFishing} biteCount={biteCount} />
+          <div className="session-status">
+            {isFishing ? "Fishing..." : `Paused: ${pausedReason}`}
+          </div>
+          <div className="session-stats">
+            <span>Focused {formatTime(focusedSeconds)}</span>
+            <span>Bites: {biteCount}</span>
+          </div>
+
+          <div className="button-row">
+            <button onClick={() => setManuallyPaused(!manuallyPaused)}>
+              {manuallyPaused ? "Resume" : "Pause"}
+            </button>
+            <button className="primary" onClick={endSession}>
+              End Session
+            </button>
+          </div>
         </div>
       )}
 
       {session === "ended" && (
-        <div>
-          <div>Session over. You focused for {formatTime(focusedSeconds)}.</div>
+        <div className="panel">
+          <h2>Session over</h2>
+          <p className="muted">You focused for {formatTime(focusedSeconds)}.</p>
 
           {sessionCatches.length === 0 ? (
-            <div>Nothing bit this time.</div>
+            <p>Nothing bit this time.</p>
           ) : (
-            <ul>
+            <ul className="catch-list">
               {sessionCatches.map((caught) => {
                 const fish = getFish(caught.fishId);
                 return (
                   <li key={caught.id}>
-                    {fish ? `${fish.name} (${fish.rarity})` : "Unknown fish"}
+                    <span className="fish-line">
+                      {fish && <FishSprite fish={fish} size={32} />}
+                      {fish ? fish.name : "Unknown fish"}
+                    </span>
+                    {fish && (
+                      <span className={`rarity rarity-${fish.rarity}`}>
+                        {fish.rarity}
+                      </span>
+                    )}
                   </li>
                 );
               })}
             </ul>
           )}
 
-          <button onClick={startSession}>New Session</button>
-          <button
-            onClick={() => {
-              setPage("home");
-              setSession("idle");
-            }}
-          >
-            Back to home
-          </button>
-          <button
-            onClick={() => {
-              setPage("collection");
-              setSession("idle");
-            }}
-          >
-            View collection
-          </button>
+          <div className="button-row">
+            <button className="primary" onClick={startSession}>
+              New Session
+            </button>
+            <button
+              onClick={() => {
+                setPage("home");
+                setSession("idle");
+              }}
+            >
+              Back to home
+            </button>
+            <button
+              onClick={() => {
+                setPage("collection");
+                setSession("idle");
+              }}
+            >
+              View collection
+            </button>
+          </div>
         </div>
       )}
     </div>

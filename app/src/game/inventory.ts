@@ -42,7 +42,7 @@ export function saveInventory(inventory: CaughtFish[]) {
 export function getPrice(caught: CaughtFish): number {
   const fish = getFish(caught.fishId);
   if (!fish) {
-    return 0;
-  }
+       return 0; // sentinel value (should never occur)
+    }
   return RARITY_PRICES[fish.rarity];
 }

@@ -1,0 +1,24 @@
+.settings-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1rem;
+}
+
+.settings-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.settings-add {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.settings-add select {
+  flex: 1;
+  min-width: 0;
+}

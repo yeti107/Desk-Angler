@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { getRunningApps, type AppInfo } from "../detection";
+import "./DistractionSettings.css";
 
 type DistractionSettingsProps = {
   distractions: AppInfo[];
@@ -23,16 +24,19 @@ function DistractionSettings({ distractions, onChange }: DistractionSettingsProp
   const selected = choices.find((app) => app.id === selectedId) ?? choices[0];
 
   return (
-    <div>
+    <div className="panel settings">
       <h2>Distraction apps</h2>
+      <p className="muted">
+        The fisherman pauses while one of these apps is in front.
+      </p>
 
       {distractions.length === 0 ? (
-        <div>None yet. The fisherman pauses while one of these is in front.</div>
+        <p>None yet.</p>
       ) : (
-        <ul>
+        <ul className="settings-list">
           {distractions.map((app) => (
             <li key={app.id}>
-              {app.name}{" "}
+              <span>{app.name}</span>
               <button
                 onClick={() =>
                   onChange(distractions.filter((other) => other.id !== app.id))
@@ -46,7 +50,7 @@ function DistractionSettings({ distractions, onChange }: DistractionSettingsProp
       )}
 
       {selected ? (
-        <div>
+        <div className="settings-add">
           <select
             value={selected.id}
             onChange={(event) => setSelectedId(event.target.value)}
@@ -60,7 +64,7 @@ function DistractionSettings({ distractions, onChange }: DistractionSettingsProp
           <button onClick={() => onChange([...distractions, selected])}>Add</button>
         </div>
       ) : (
-        <div>Open the app you want to add, then refresh.</div>
+        <p className="muted">Open the app you want to add, then refresh.</p>
       )}
 
       <button onClick={refreshRunningApps}>Refresh running apps</button>

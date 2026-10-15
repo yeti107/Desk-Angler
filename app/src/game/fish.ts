@@ -26,17 +26,29 @@ export const FISH: Fish[] = [
   { id: "minnow", name: "Minnow", rarity: "common", weight: 1 },
   { id: "perch", name: "Perch", rarity: "common", weight: 1 },
   { id: "roach", name: "Roach", rarity: "common", weight: 1 },
+  { id: "bluegill", name: "Bluegill", rarity: "common", weight: 1 },
+  { id: "smelt", name: "Smelt", rarity: "common", weight: 1 },
+  { id: "guppy", name: "Guppy", rarity: "common", weight: 1 },
+  { id: "seahorse", name: "Seahorse", rarity: "common", weight: 1 },
   { id: "trout", name: "Trout", rarity: "uncommon", weight: 1 },
   { id: "carp", name: "Carp", rarity: "uncommon", weight: 1 },
+  { id: "bass", name: "Bass", rarity: "uncommon", weight: 1 },
+  { id: "bream", name: "Bream", rarity: "uncommon", weight: 1 },
+  { id: "mackerel", name: "Mackerel", rarity: "uncommon", weight: 1 },
+  { id: "stingray", name: "Stingray", rarity: "uncommon", weight: 1 },
   { id: "pike", name: "Pike", rarity: "rare", weight: 1 },
   { id: "catfish", name: "Catfish", rarity: "rare", weight: 1 },
-  { id: "golden-koi", name: "Golden Koi", rarity: "legendary", weight: 1 },
+  { id: "eel", name: "Eel", rarity: "rare", weight: 1 },
+  { id: "barracuda", name: "Barracuda", rarity: "rare", weight: 1 },
+  { id: "lionfish", name: "Lionfish", rarity: "rare", weight: 1 },
+  { id: "great-white", name: "Great White", rarity: "legendary", weight: 1 },
+  { id: "anglerfish", name: "Anglerfish", rarity: "legendary", weight: 1 },
 ];
 
-//pricing for fish
+//   pricing for fish
 export const RARITY_PRICES: Record<Rarity, number> = {
   common: 20,
   uncommon: 30,
   rare: 45,
   legendary: 100,
-}
+};

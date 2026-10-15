@@ -1,0 +1,97 @@
+/* Colours, panels, buttons, rarity labels and the warning box come from
+   App.css. This file only lays out the Market. */
+
+.market-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.market-card-top {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* Pushes the rarity label to the right edge. */
+.market-card-top .rarity {
+  margin-left: auto;
+}
+
+.market-card-info {
+  color: var(--text-muted);
+  margin: 0.25rem 0 0.5rem;
+}
+
+.market-picker {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.app .market-picker button {
+  width: 2.25rem;
+  padding: 0.25rem 0;
+}
+
+.market-picker input {
+  width: 3.5rem;
+  text-align: center;
+}
+
+.app .market-sell {
+  display: block;
+  margin: 1.25rem auto 0;
+  padding: 0.5rem 1.5rem;
+}
+
+/* The confirm popup: a dimmed layer over the whole window, with the dialog
+   centred on top. */
+.market-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--overlay);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.market-dialog {
+  width: 100%;
+  max-width: 400px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* The fish list scrolls if you're selling a lot. */
+.market-dialog-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  overflow-y: auto;
+}
+
+.market-dialog-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.35rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.market-total {
+  font-family: var(--font-pixel);
+  font-weight: 700;
+  text-align: right;
+  margin-top: 0.75rem;
+}
+
+.market-dialog-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}

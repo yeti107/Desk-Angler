@@ -1,0 +1,44 @@
+/* Two cards per row, one on narrow windows. */
+.collection-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 0.75rem;
+}
+
+.collection-card .fish-sprite {
+  margin: 0 auto 0.5rem;
+}
+
+.collection-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Species not caught yet: faded, dashed outline. */
+.collection-card.undiscovered {
+  opacity: 0.55;
+  border-style: dashed;
+  box-shadow: none;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 4rem;
+}
+
+/* Catch times can get long, so the list scrolls inside the card. */
+.collection-catches {
+  list-style: none;
+  padding: 0;
+  margin: 0.5rem 0 0;
+  max-height: 7.5rem;
+  overflow-y: auto;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.collection-catches li {
+  padding: 0.15rem 0;
+}

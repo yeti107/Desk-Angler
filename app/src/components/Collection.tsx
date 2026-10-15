@@ -1,10 +1,11 @@
 import { FISH } from "../game/fish";
+import FishSprite from "./FishSprite";
+import "./Collection.css";
 import type { CaughtFish } from "../game/inventory";
 
 type CollectionProps = {
   inventory: CaughtFish[];
   discoveries: string[];
-  onBack: () => void;
 };
 
 function formatCaughtAt(caughtAt: string) {
@@ -14,7 +15,7 @@ function formatCaughtAt(caughtAt: string) {
   });
 }
 
-function Collection({ inventory, discoveries, onBack }: CollectionProps) {
+function Collection({ inventory, discoveries }: CollectionProps) {
   // Every species in the roster, each with the fish of that species the
   // player holds, newest first.
   const species = FISH.map((fish) => ({
@@ -26,26 +27,31 @@ function Collection({ inventory, discoveries, onBack }: CollectionProps) {
   const discovered = discoveries.length;
 
   return (
-    <div>
-      <button onClick={onBack}>Back</button>
-
+    <div className="collection">
       <h2>Collection</h2>
-      <div>
+      <p className="muted">
         Discovered {discovered} of {FISH.length} species. {inventory.length} fish
         caught in total.
-      </div>
+      </p>
 
+      <div className="collection-list">
       {species.map(({ fish, caught }) =>
         !discoveries.includes(fish.id) ? (
-          <div key={fish.id}>
+          <div key={fish.id} className="panel collection-card undiscovered">
+            <FishSprite fish={fish} size={64} silhouette />
             <h3>???</h3>
           </div>
         ) : (
-          <div key={fish.id}>
-            <h3>
-              {fish.name} ({fish.rarity}) x{caught.length}
-            </h3>
-            <ul>
+          <div key={fish.id} className="panel collection-card">
+            <FishSprite fish={fish} size={64} />
+            <div className="collection-card-top">
+              <h3>{fish.name}</h3>
+              <span className={`rarity rarity-${fish.rarity}`}>
+                {fish.rarity}
+              </span>
+            </div>
+            <div className="muted">You hold {caught.length}</div>
+            <ul className="collection-catches">
               {caught.map((one) => (
                 <li key={one.id}>Caught {formatCaughtAt(one.caughtAt)}</li>
               ))}
@@ -53,6 +59,7 @@ function Collection({ inventory, discoveries, onBack }: CollectionProps) {
           </div>
         ),
       )}
+      </div>
     </div>
   );
 }
