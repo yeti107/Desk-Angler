@@ -6,9 +6,98 @@
   border-radius: 8px;
 }
 
+/* Scene colours. Daytime by default; the dark-mode set below turns it into
+   an evening lake. */
+.fisherman-scene {
+  --scene-sky-1: #8fd0ef;
+  --scene-sky-2: #a9dcf2;
+  --scene-sky-3: #c2e7f6;
+  --scene-sky-4: #dcf1fa;
+  --scene-trees: #3f7a4a;
+  --scene-trees-light: #4f8f58;
+  --scene-water: #3b7dbd;
+  --scene-water-top: #6fa8dc;
+  --scene-water-deep: #2f6aa5;
+  --scene-water-light: #6fa8dc;
+}
+
+@media (prefers-color-scheme: dark) {
+  .fisherman-scene {
+    --scene-sky-1: #34386a;
+    --scene-sky-2: #4d4680;
+    --scene-sky-3: #7a5a8c;
+    --scene-sky-4: #d48a7c;
+    --scene-trees: #263449;
+    --scene-trees-light: #2f4058;
+    --scene-water: #1d4a73;
+    --scene-water-top: #c9867e;
+    --scene-water-deep: #163a5c;
+    --scene-water-light: #3a6f9e;
+  }
+}
+
+.sky-1 { fill: var(--scene-sky-1); }
+.sky-2 { fill: var(--scene-sky-2); }
+.sky-3 { fill: var(--scene-sky-3); }
+.sky-4 { fill: var(--scene-sky-4); }
+.trees { fill: var(--scene-trees); }
+.trees-light { fill: var(--scene-trees-light); }
+.fisherman-scene .water { fill: var(--scene-water); }
+.water-top { fill: var(--scene-water-top); }
+.water-deep { fill: var(--scene-water-deep); }
+.fisherman-scene .water-light { fill: var(--scene-water-light); }
+
+/* Sun by day, moon at dusk. */
+.moon {
+  display: none;
+}
+
+@media (prefers-color-scheme: dark) {
+  .sun {
+    display: none;
+  }
+
+  .moon {
+    display: inline;
+  }
+}
+
+/* Reed tips lean one pixel and back. */
+.scene-reed-tip {
+  animation: scene-sway 3s steps(1) infinite;
+}
+
+@keyframes scene-sway {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(1px);
+  }
+}
+
+/* In cutout mode the scene floats on the desktop, so a thin light outline
+   keeps it visible on dark wallpapers. */
+.fisherman-scene.cutout {
+  border-radius: 0;
+  filter: drop-shadow(1px 0 0 rgba(255, 255, 255, 0.8))
+    drop-shadow(-1px 0 0 rgba(255, 255, 255, 0.8))
+    drop-shadow(0 1px 0 rgba(255, 255, 255, 0.8))
+    drop-shadow(0 -1px 0 rgba(255, 255, 255, 0.8));
+}
+
 .fisherman-scene.paused {
   filter: grayscale(0.8);
   opacity: 0.7;
+}
+
+/* Paused cutout: keep the outline as well as the grey-out. */
+.fisherman-scene.cutout.paused {
+  filter: grayscale(0.8) drop-shadow(1px 0 0 rgba(255, 255, 255, 0.8))
+    drop-shadow(-1px 0 0 rgba(255, 255, 255, 0.8))
+    drop-shadow(0 1px 0 rgba(255, 255, 255, 0.8))
+    drop-shadow(0 -1px 0 rgba(255, 255, 255, 0.8));
 }
 
 /* steps(1) makes each movement jump a whole pixel instead of sliding. */
@@ -69,7 +158,8 @@
 
 @media (prefers-reduced-motion: reduce) {
   .bobber,
-  .bobber.bitten {
+  .bobber.bitten,
+  .scene-reed-tip {
     animation: none;
   }
 }

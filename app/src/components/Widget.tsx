@@ -30,7 +30,11 @@ function Widget() {
 
   return (
     <div className={interactive ? "widget interactive" : "widget"}>
-      <Fisherman isFishing={info.isFishing} biteCount={info.biteCount} />
+      <Fisherman
+        isFishing={info.isFishing}
+        biteCount={info.biteCount}
+        cutout
+      />
 
       {/* Sits over the scene so the whole widget can be dragged. */}
       <div className="widget-drag" data-tauri-drag-region />

@@ -25,7 +25,7 @@ const WIDGET_HEIGHT: f64 = 100.0;
 
 const POLL_INTERVAL: Duration = Duration::from_millis(200);
 // How long the cursor must rest on the widget before it accepts clicks.
-const HOVER_TO_UNLOCK: Duration = Duration::from_secs(3);
+const HOVER_TO_UNLOCK: Duration = Duration::from_millis(1500);
 
 // What the main window tells us about the session. The widget draws from it.
 #[derive(Clone, serde::Serialize, serde::Deserialize)]
