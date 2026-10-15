@@ -3,6 +3,7 @@ import type { CaughtFish } from "../game/inventory";
 
 type CollectionProps = {
   inventory: CaughtFish[];
+  discoveries: string[];
   onBack: () => void;
 };
 
@@ -13,7 +14,7 @@ function formatCaughtAt(caughtAt: string) {
   });
 }
 
-function Collection({ inventory, onBack }: CollectionProps) {
+function Collection({ inventory, discoveries, onBack }: CollectionProps) {
   // Every species in the roster, each with the fish of that species the
   // player holds, newest first.
   const species = FISH.map((fish) => ({
@@ -22,7 +23,7 @@ function Collection({ inventory, onBack }: CollectionProps) {
       .filter((caught) => caught.fishId === fish.id)
       .sort((a, b) => b.caughtAt.localeCompare(a.caughtAt)),
   }));
-  const discovered = species.filter((entry) => entry.caught.length > 0).length;
+  const discovered = discoveries.length;
 
   return (
     <div>
@@ -35,7 +36,7 @@ function Collection({ inventory, onBack }: CollectionProps) {
       </div>
 
       {species.map(({ fish, caught }) =>
-        caught.length === 0 ? (
+        !discoveries.includes(fish.id) ? (
           <div key={fish.id}>
             <h3>???</h3>
           </div>

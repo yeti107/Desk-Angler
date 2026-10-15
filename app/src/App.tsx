@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import Collection from "./components/Collection";
 import DistractionSettings from "./components/DistractionSettings";
 import Fisherman from "./components/Fisherman";
+import Market from "./components/Market";
 import {
   loadDistractions,
   onTick,
@@ -18,12 +19,20 @@ import {
   saveInventory,
   type CaughtFish,
 } from "./game/inventory";
+import {
+  loadDiscoveries,
+  saveDiscoveries,
+} from "./game/discoveries";
+import {
+  loadGold,
+  saveGold,
+} from "./game/gold";
 import { INITIAL_PRESENCE, updatePresence } from "./presence";
 import { onTogglePauseRequest, publishSessionInfo } from "./widgetBridge";
 
 type SessionState = "idle" | "running" | "ended";
 // Which screen to show while no session is running.
-type Page = "home" | "collection";
+type Page = "home" | "collection" | "market";
 
 function formatTime(totalSeconds: number) {
   const minutes = Math.floor(totalSeconds / 60);
@@ -39,6 +48,8 @@ function App() {
   // The focused-time mark, in seconds, at which the next fish is caught.
   const [nextCatchAt, setNextCatchAt] = useState(0);
   const [inventory, setInventory] = useState<CaughtFish[]>(loadInventory);
+  const [gold, setGold] = useState<number>(loadGold);
+  const [discoveries, setDiscoveries] = useState<string[]>(() => loadDiscoveries(inventory));
   const [distractions, setDistractions] = useState<AppInfo[]>(loadDistractions);
   const [frontmostApp, setFrontmostApp] = useState<AppInfo | null>(null);
   const [presence, setPresence] = useState(INITIAL_PRESENCE);
@@ -88,12 +99,25 @@ function App() {
     // The camera is required for now, so every session is verified.
     const caught = createCatch(rollFish(), sessionId, true);
     setInventory((previous) => [...previous, caught]);
+    setDiscoveries((previous) =>
+      previous.includes(caught.fishId)
+        ? previous
+        : [...previous, caught.fishId],
+    );
     setNextCatchAt(focusedSeconds + rollCatchGap());
   }, [session, sessionId, focusedSeconds, nextCatchAt]);
 
   useEffect(() => {
     saveInventory(inventory);
   }, [inventory]);
+
+  useEffect(() => {
+    saveDiscoveries(discoveries);
+  }, [discoveries]);
+
+  useEffect(() => {
+    saveGold(gold);
+  }, [gold]);
 
   // Keep the widget up to date with what it needs to draw.
   const biteCount = sessionCatches.length;
@@ -143,13 +167,27 @@ function App() {
       {cameraError && <div role="alert">{cameraError}</div>}
 
       {session === "idle" && page === "collection" && (
-        <Collection inventory={inventory} onBack={() => setPage("home")} />
+        <Collection
+          inventory={inventory}
+          discoveries={discoveries}
+          onBack={() => setPage("home")}
+        />
+      )}
+
+      {session === "idle" && page === "market" && (
+        <Market
+          gold={gold}
+          inventory={inventory}
+          onBack={() => setPage("home")}
+        />
       )}
 
       {session === "idle" && page === "home" && (
         <div>
+          <div>Gold: {gold}</div>
           <button onClick={startSession}>Start Session</button>
           <button onClick={() => setPage("collection")}>Collection</button>
+          <button onClick={() => setPage("market")}>Market</button>
           <DistractionSettings
             distractions={distractions}
             onChange={setDistractions}
