@@ -1,7 +1,7 @@
 import { FISH } from "../game/fish";
 import FishSprite from "./FishSprite";
 import "./Collection.css";
-import type { CaughtFish } from "../game/inventory";
+import { describeSize, type CaughtFish } from "../game/inventory";
 
 type CollectionProps = {
   inventory: CaughtFish[];
@@ -53,7 +53,9 @@ function Collection({ inventory, discoveries }: CollectionProps) {
             <div className="muted">You hold {caught.length}</div>
             <ul className="collection-catches">
               {caught.map((one) => (
-                <li key={one.id}>Caught {formatCaughtAt(one.caughtAt)}</li>
+                <li key={one.id}>
+                  {describeSize(one)} · caught {formatCaughtAt(one.caughtAt)}
+                </li>
               ))}
             </ul>
           </div>

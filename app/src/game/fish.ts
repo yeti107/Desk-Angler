@@ -1,3 +1,5 @@
+const SIZE_RARITY_POWER = 2;
+
 export type Rarity = "common" | "uncommon" | "rare" | "legendary";
 
 // Chance of each rarity tier per catch. These are relative weights, so they
@@ -21,6 +23,11 @@ export type Fish = {
 
 export function getFish(fishId: string) {
   return FISH.find((fish) => fish.id === fishId);
+}
+
+export function rollSizeFraction(): number {
+  const roll = Math.random();
+  return roll ** SIZE_RARITY_POWER;
 }
 
 // Placeholder fish until the real roster is designed.

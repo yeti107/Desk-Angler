@@ -23,6 +23,21 @@
   margin: 0.25rem 0 0.5rem;
 }
 
+/* Each fish of this species with its size. Scrolls if you hold a lot. */
+.market-card-fish {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 0.5rem;
+  max-height: 6rem;
+  overflow-y: auto;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.market-card-fish li {
+  padding: 0.1rem 0;
+}
+
 .market-picker {
   display: flex;
   justify-content: center;

@@ -18,6 +18,7 @@ import { getFish } from "./game/fish";
 import { rollCatchGap, rollFish } from "./game/fishing";
 import {
   createCatch,
+  describeSize,
   getPrice,
   loadInventory,
   saveInventory,
@@ -288,6 +289,7 @@ function App() {
                     <span className="fish-line">
                       {fish && <FishSprite fish={fish} size={32} />}
                       {fish ? fish.name : "Unknown fish"}
+                      <span className="fish-size">{describeSize(caught)}</span>
                     </span>
                     {fish && (
                       <span className={`rarity rarity-${fish.rarity}`}>

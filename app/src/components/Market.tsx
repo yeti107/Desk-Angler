@@ -1,4 +1,4 @@
-import { getPrice, type CaughtFish } from "../game/inventory";
+import { describeSize, getPrice, type CaughtFish } from "../game/inventory";
 import { FISH } from "../game/fish";
 import FishSprite from "./FishSprite";
 import { useState } from "react";
@@ -80,6 +80,14 @@ function Market({ inventory, onSell }: MarketProps) {
                 You hold {held} · {price} gold each
               </div>
 
+              {/* Every fish of this species, newest first (the same order
+                  they get sold in). */}
+              <ul className="market-card-fish">
+                {[...caught].reverse().map((one) => (
+                  <li key={one.id}>{describeSize(one)}</li>
+                ))}
+              </ul>
+
               <div className="market-picker">
                 <button
                   onClick={() => setQuantity(fish.id, selected - 1, held)}
@@ -137,6 +145,7 @@ function Market({ inventory, onSell }: MarketProps) {
                     <span className={`rarity rarity-${fish.rarity}`}>
                       {fish.rarity}
                     </span>
+                    <span className="fish-size">{describeSize(caught)}</span>
                   </span>
                   <span>{price} gold</span>
                 </li>

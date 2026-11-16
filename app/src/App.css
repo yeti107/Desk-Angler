@@ -358,9 +358,17 @@ html:not(.widget-window) body {
   opacity: 0.6;
 }
 
-/* A small fish picture followed by its name, on one line. */
+/* A small fish picture followed by its name, on one line (wraps if the
+   size doesn't fit). */
 .fish-line {
   display: inline-flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 0.5rem;
+}
+
+/* A caught fish's length and weight, e.g. "17.4 cm · 450 g". */
+.fish-size {
+  font-size: 0.85rem;
+  color: var(--text-muted);
 }
