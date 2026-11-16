@@ -30,6 +30,16 @@ export function rollSizeFraction(): number {
   return roll ** SIZE_RARITY_POWER;
 }
 
+// Chance that any catch is a shiny variant. 1 in 100 for testing (about one
+// per 9 focused hours); the real game will probably make it rarer.
+const SHINY_CHANCE = 1 / 100;
+// A shiny sells for this many times the normal price.
+export const SHINY_PRICE_MULTIPLIER = 5;
+
+export function rollShiny(): boolean {
+  return Math.random() < SHINY_CHANCE;
+}
+
 // Placeholder fish until the real roster is designed.
 export const FISH: Fish[] = [
   { id: "minnow", name: "Minnow", rarity: "common", weight: 1, length: {min:3, max:10}, fishWeight: {min:0.002, max:0.015} },

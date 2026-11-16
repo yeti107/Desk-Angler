@@ -20,13 +20,16 @@ import {
   createCatch,
   describeSize,
   getPrice,
+  marketGroupKey,
   loadInventory,
   saveInventory,
   type CaughtFish,
 } from "./game/inventory";
 import {
   loadDiscoveries,
+  loadShinyDiscoveries,
   saveDiscoveries,
+  saveShinyDiscoveries,
 } from "./game/discoveries";
 import {
   loadGold,
@@ -62,6 +65,9 @@ function App() {
   const [inventory, setInventory] = useState<CaughtFish[]>(loadInventory);
   const [gold, setGold] = useState<number>(loadGold);
   const [discoveries, setDiscoveries] = useState<string[]>(() => loadDiscoveries(inventory));
+  const [shinyDiscoveries, setShinyDiscoveries] = useState<string[]>(() =>
+    loadShinyDiscoveries(inventory),
+  );
   const [distractions, setDistractions] = useState<AppInfo[]>(loadDistractions);
   const [frontmostApp, setFrontmostApp] = useState<AppInfo | null>(null);
   const [presence, setPresence] = useState(INITIAL_PRESENCE);
@@ -116,6 +122,13 @@ function App() {
         ? previous
         : [...previous, caught.fishId],
     );
+    if (caught.isShiny) {
+      setShinyDiscoveries((previous) =>
+        previous.includes(caught.fishId)
+          ? previous
+          : [...previous, caught.fishId],
+      );
+    }
     setNextCatchAt(focusedSeconds + rollCatchGap());
   }, [session, sessionId, focusedSeconds, nextCatchAt]);
 
@@ -126,6 +139,10 @@ function App() {
   useEffect(() => {
     saveDiscoveries(discoveries);
   }, [discoveries]);
+
+  useEffect(() => {
+    saveShinyDiscoveries(shinyDiscoveries);
+  }, [shinyDiscoveries]);
 
   useEffect(() => {
     saveGold(gold);
@@ -173,13 +190,15 @@ function App() {
   }
 
   // Sells fish and adds their price to the player's gold. `selection` maps a
-  // species id to how many of that species to sell. The newest fish of each
-  // species are sold first.
+  // Market card (see marketGroupKey: a species, or a species' shinies) to how
+  // many to sell from it. The newest fish of each card are sold first.
   function sellFish(selection: Record<string, number>) {
     const sold: CaughtFish[] = [];
 
-    for (const [fishId, quantity] of Object.entries(selection)) {
-      const held = inventory.filter((caught) => caught.fishId === fishId);
+    for (const [groupKey, quantity] of Object.entries(selection)) {
+      const held = inventory.filter(
+        (caught) => marketGroupKey(caught) === groupKey,
+      );
       // New catches are added to the end of the inventory, so the newest fish
       // are at the end of `held`. Math.max stops the start going below 0 if
       // the quantity is more than the player holds.
@@ -237,7 +256,11 @@ function App() {
       )}
 
       {session === "idle" && page === "collection" && (
-        <Collection inventory={inventory} discoveries={discoveries} />
+        <Collection
+          inventory={inventory}
+          discoveries={discoveries}
+          shinyDiscoveries={shinyDiscoveries}
+        />
       )}
 
       {session === "idle" && page === "market" && (
@@ -285,17 +308,27 @@ function App() {
               {sessionCatches.map((caught) => {
                 const fish = getFish(caught.fishId);
                 return (
-                  <li key={caught.id}>
+                  <li
+                    key={caught.id}
+                    className={caught.isShiny ? "shiny-row" : undefined}
+                  >
                     <span className="fish-line">
-                      {fish && <FishSprite fish={fish} size={32} />}
+                      {fish && (
+                        <FishSprite fish={fish} size={32} shiny={caught.isShiny} />
+                      )}
                       {fish ? fish.name : "Unknown fish"}
                       <span className="fish-size">{describeSize(caught)}</span>
                     </span>
-                    {fish && (
-                      <span className={`rarity rarity-${fish.rarity}`}>
-                        {fish.rarity}
-                      </span>
-                    )}
+                    <span className="pill-row">
+                      {fish && (
+                        <span className={`rarity rarity-${fish.rarity}`}>
+                          {fish.rarity}
+                        </span>
+                      )}
+                      {caught.isShiny && (
+                        <span className="rarity rarity-shiny">shiny</span>
+                      )}
+                    </span>
                   </li>
                 );
               })}

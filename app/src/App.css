@@ -33,6 +33,16 @@
   --legendary-bg: #fdefc8;
   --legendary-text: #8a5a00;
 
+  /* Shiny fish: a shimmering pastel border and sparkles. Placeholder colours,
+     to revisit. */
+  --shiny-1: #f4a6dc;
+  --shiny-2: #8fd8ff;
+  --shiny-3: #ffd970;
+  --shiny-text: #8a3b8f;
+  --shiny-pill-text: #4a1f52;
+  --shiny-row-bg: #fdf1fb;
+  --sparkle: #ffffff;
+
   --warning-bg: #fff6dc;
   --warning-border: #e8b434;
   --warning-text: #6b4a00;
@@ -73,6 +83,14 @@
     --rare-text: #d6e5ff;
     --legendary-bg: #7a6328;
     --legendary-text: #ffe2a0;
+
+    --shiny-1: #ff9fe0;
+    --shiny-2: #8fdcff;
+    --shiny-3: #ffe27a;
+    --shiny-text: #ffd0f2;
+    --shiny-pill-text: #3a1842;
+    --shiny-row-bg: #5a5490;
+    --sparkle: #fffbe0;
 
     --warning-bg: #6e5a2a;
     --warning-border: #e0b54a;
@@ -371,4 +389,175 @@ html:not(.widget-window) body {
 .fish-size {
   font-size: 0.85rem;
   color: var(--text-muted);
+}
+
+/* ---------- Shiny fish ---------- */
+
+/* A thin shimmering border for a shiny fish's card. Two backgrounds: the card
+   colour inside the padding, and a moving gradient that only shows through
+   the (transparent) border. */
+.shiny-border {
+  border-width: 3px;
+  border-color: transparent;
+  background:
+    linear-gradient(var(--surface), var(--surface)) padding-box,
+    linear-gradient(
+        120deg,
+        var(--shiny-1),
+        var(--shiny-2),
+        var(--shiny-3),
+        var(--shiny-1)
+      )
+      border-box;
+  background-size: 100% 100%, 300% 300%;
+  animation: shiny-shimmer 6s linear infinite;
+}
+
+@keyframes shiny-shimmer {
+  from {
+    background-position: 0 0, 0% 50%;
+  }
+  to {
+    background-position: 0 0, 300% 50%;
+  }
+}
+
+.shiny-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--shiny-text);
+  white-space: nowrap;
+}
+
+/* "Shiny" pill, sitting next to the rarity pill. Filled with the same moving
+   gradient as the shiny border. */
+.rarity-shiny {
+  color: var(--shiny-pill-text);
+  background: linear-gradient(
+    120deg,
+    var(--shiny-1),
+    var(--shiny-2),
+    var(--shiny-3),
+    var(--shiny-1)
+  );
+  background-size: 300% 300%;
+  animation: shiny-pill-shimmer 6s linear infinite;
+}
+
+@keyframes shiny-pill-shimmer {
+  from {
+    background-position: 0% 50%;
+  }
+  to {
+    background-position: 300% 50%;
+  }
+}
+
+/* Keeps a rarity pill and a shiny pill side by side. */
+.pill-row {
+  display: inline-flex;
+  gap: 0.35rem;
+  align-items: center;
+}
+
+/* Sparkle pixels on a shiny fish sprite. */
+.fish-sparkle {
+  fill: var(--sparkle);
+  animation: sparkle-twinkle 1.8s ease-in-out infinite;
+}
+
+@keyframes sparkle-twinkle {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* A shiny in the end-of-session list: a tint, a small pop when it appears,
+   and a light sheen that sweeps across now and then. Still small: the big
+   reveal comes with the reel-in animation. */
+.catch-list li.shiny-row {
+  position: relative;
+  overflow: hidden;
+  background: var(--shiny-row-bg);
+  border-radius: 6px;
+  padding-left: 0.4rem;
+  padding-right: 0.4rem;
+  animation: shiny-pop 0.6s ease-out;
+}
+
+.catch-list li.shiny-row::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    100deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.55) 50%,
+    transparent 70%
+  );
+  transform: translateX(-100%);
+  animation: shiny-sheen 3.5s ease-in-out 0.6s infinite;
+  pointer-events: none;
+}
+
+.catch-list li.shiny-row .rarity-shiny {
+  animation:
+    shiny-pill-shimmer 6s linear infinite,
+    shiny-pill-glow 2s ease-in-out infinite;
+}
+
+@keyframes shiny-pop {
+  0% {
+    transform: scale(0.96);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.03);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Sweeps across in the first third of the cycle, then rests. */
+@keyframes shiny-sheen {
+  0% {
+    transform: translateX(-100%);
+  }
+  35%,
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes shiny-pill-glow {
+  0%,
+  100% {
+    box-shadow: none;
+  }
+  50% {
+    box-shadow: 0 0 8px var(--shiny-1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shiny-border,
+  .fish-sparkle,
+  .catch-list li.shiny-row,
+  .catch-list li.shiny-row::after,
+  .catch-list li.shiny-row .rarity-shiny,
+  .rarity-shiny {
+    animation: none;
+  }
+  .catch-list li.shiny-row::after {
+    display: none;
+  }
+  .fish-sparkle {
+    opacity: 1;
+  }
 }

@@ -1,4 +1,9 @@
-import { describeSize, getPrice, type CaughtFish } from "../game/inventory";
+import {
+  describeSize,
+  getPrice,
+  marketGroupKey,
+  type CaughtFish,
+} from "../game/inventory";
 import { FISH } from "../game/fish";
 import FishSprite from "./FishSprite";
 import { useState } from "react";
@@ -7,37 +12,46 @@ import "./Market.css";
 
 type MarketProps = {
   inventory: CaughtFish[];
-  // Called with species id -> how many of that species to sell.
+  // Called with Market card (see marketGroupKey) -> how many to sell from it.
   onSell: (selection: Record<string, number>) => void;
 };
 
 function Market({ inventory, onSell }: MarketProps) {
-  // How many of each species the player has picked to sell (species id ->
-  // quantity). A species that isn't in here counts as 0.
+  // How many from each card the player has picked to sell (card key ->
+  // quantity). A card that isn't in here counts as 0. A card is a species, or
+  // that species' shinies (see marketGroupKey).
   const [selection, setSelection] = useState<Record<string, number>>({});
   // Whether the confirmation screen is showing.
   const [confirming, setConfirming] = useState(false);
 
-  // Every species the player holds at least one of, with the price per fish.
-  const species = FISH
-    .map((fish) => ({
-      fish,
-      caught: inventory.filter((caught) => caught.fishId === fish.id),
-    }))
-    .filter(({ caught }) => caught.length > 0)
-    .map(({ fish, caught }) => ({ fish, caught, price: getPrice(caught[0]) }));
+  // One card per species the player holds, plus a separate card for that
+  // species' shinies if they hold any. Each card has its price per fish.
+  const species = FISH.flatMap((fish) => {
+    const ofSpecies = inventory.filter((caught) => caught.fishId === fish.id);
+    const normal = ofSpecies.filter((caught) => !caught.isShiny);
+    const shinies = ofSpecies.filter((caught) => caught.isShiny);
+    return [normal, shinies]
+      .filter((caught) => caught.length > 0)
+      .map((caught) => ({
+        fish,
+        caught,
+        key: marketGroupKey(caught[0]),
+        shiny: caught[0].isShiny === true,
+        price: getPrice(caught[0]),
+      }));
+  });
 
-  // Sets how many of one species to sell, kept between 0 and how many the
+  // Sets how many to sell from one card, kept between 0 and how many the
   // player holds.
-  function setQuantity(fishId: string, quantity: number, held: number) {
+  function setQuantity(key: string, quantity: number, held: number) {
     const clamped = Math.min(Math.max(quantity, 0), held);
-    setSelection((previous) => ({ ...previous, [fishId]: clamped }));
+    setSelection((previous) => ({ ...previous, [key]: clamped }));
   }
 
-  // Every individual fish that would be sold, newest of each species first,
+  // Every individual fish that would be sold, newest of each card first,
   // matching what sellFish in App removes.
-  const toSell = species.flatMap(({ fish, caught }) => {
-    const quantity = selection[fish.id] ?? 0;
+  const toSell = species.flatMap(({ fish, caught, key }) => {
+    const quantity = selection[key] ?? 0;
     return caught
       .slice(caught.length - quantity)
       .reverse()
@@ -45,7 +59,8 @@ function Market({ inventory, onSell }: MarketProps) {
   });
   const total = toSell.reduce((sum, { price }) => sum + price, 0);
   const sellingRare = toSell.some(
-    ({ fish }) => fish.rarity === "rare" || fish.rarity === "legendary",
+    ({ fish, caught }) =>
+      fish.rarity === "rare" || fish.rarity === "legendary" || caught.isShiny,
   );
 
   function confirmSale() {
@@ -63,18 +78,22 @@ function Market({ inventory, onSell }: MarketProps) {
       )}
 
       <div className="market-list">
-        {species.map(({ fish, caught, price }) => {
+        {species.map(({ fish, caught, key, shiny, price }) => {
           const held = caught.length;
-          const selected = selection[fish.id] ?? 0;
+          const selected = selection[key] ?? 0;
 
           return (
-            <div key={fish.id} className="panel market-card">
+            <div
+              key={key}
+              className={`panel market-card${shiny ? " shiny-border" : ""}`}
+            >
               <div className="market-card-top">
-                <FishSprite fish={fish} size={48} />
+                <FishSprite fish={fish} size={48} shiny={shiny} />
                 <h3>{fish.name}</h3>
                 <span className={`rarity rarity-${fish.rarity}`}>
                   {fish.rarity}
                 </span>
+                {shiny && <span className="rarity rarity-shiny">shiny</span>}
               </div>
               <div className="market-card-info">
                 You hold {held} · {price} gold each
@@ -90,7 +109,7 @@ function Market({ inventory, onSell }: MarketProps) {
 
               <div className="market-picker">
                 <button
-                  onClick={() => setQuantity(fish.id, selected - 1, held)}
+                  onClick={() => setQuantity(key, selected - 1, held)}
                 >
                   -
                 </button>
@@ -100,11 +119,11 @@ function Market({ inventory, onSell }: MarketProps) {
                   max={held}
                   value={selected}
                   onChange={(event) =>
-                    setQuantity(fish.id, Number(event.target.value) || 0, held)
+                    setQuantity(key, Number(event.target.value) || 0, held)
                   }
                 />
                 <button
-                  onClick={() => setQuantity(fish.id, selected + 1, held)}
+                  onClick={() => setQuantity(key, selected + 1, held)}
                 >
                   +
                 </button>
@@ -131,8 +150,8 @@ function Market({ inventory, onSell }: MarketProps) {
 
             {sellingRare && (
               <div className="alert" role="alert">
-                You're selling rare or legendary fish. They're hard to catch
-                again.
+                You're selling rare, legendary or shiny fish. They're hard to
+                catch again.
               </div>
             )}
 
@@ -140,11 +159,14 @@ function Market({ inventory, onSell }: MarketProps) {
               {toSell.map(({ fish, caught, price }) => (
                 <li key={caught.id}>
                   <span className="fish-line">
-                    <FishSprite fish={fish} size={28} />
+                    <FishSprite fish={fish} size={28} shiny={caught.isShiny} />
                     {fish.name}{" "}
                     <span className={`rarity rarity-${fish.rarity}`}>
                       {fish.rarity}
                     </span>
+                    {caught.isShiny && (
+                      <span className="rarity rarity-shiny">shiny</span>
+                    )}
                     <span className="fish-size">{describeSize(caught)}</span>
                   </span>
                   <span>{price} gold</span>

@@ -1,5 +1,12 @@
 import { loadJson, saveJson } from "../storage";
-import { type Fish, RARITY_PRICES, getFish, rollSizeFraction } from "./fish";
+import {
+  type Fish,
+  RARITY_PRICES,
+  SHINY_PRICE_MULTIPLIER,
+  getFish,
+  rollShiny,
+  rollSizeFraction,
+} from "./fish";
 
 // One individual fish the player caught. Each catch is its own record, not a
 // count per species, so a single fish can later be sold or traded.
@@ -15,6 +22,9 @@ export type CaughtFish = {
   verified: boolean;
   length?: number; // cm
   fishWeight?: number; // kg
+  // A rare shiny variant. Fish caught before shinies existed don't have this
+  // field, which counts as not shiny.
+  isShiny?: boolean;
 };
 
 export function createCatch(
@@ -33,6 +43,7 @@ export function createCatch(
     verified,
     length,
     fishWeight,
+    isShiny: rollShiny(),
   };
 }
 
@@ -86,5 +97,13 @@ export function getPrice(caught: CaughtFish): number {
   if (!fish) {
        return 0; // sentinel value (should never occur)
     }
-  return RARITY_PRICES[fish.rarity];
+  const price = RARITY_PRICES[fish.rarity];
+  return caught.isShiny ? price * SHINY_PRICE_MULTIPLIER : price;
+}
+
+// Which Market card a fish belongs to. Shinies get their own card per species
+// so they're only sold when picked on purpose. Market and sellFish in App both
+// use this, so the two always agree.
+export function marketGroupKey(caught: CaughtFish): string {
+  return caught.isShiny ? `${caught.fishId}:shiny` : caught.fishId;
 }

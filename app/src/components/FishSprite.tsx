@@ -160,13 +160,37 @@ type FishSpriteProps = {
   size?: number;
   // Draw a plain dark shape, for species not discovered yet.
   silhouette?: boolean;
+  // Shiny variant: a glossy highlight along the top of the body and a few
+  // twinkling sparkles around the fish.
+  shiny?: boolean;
 };
 
-function FishSprite({ fish, size = 48, silhouette = false }: FishSpriteProps) {
+// Where the sparkles go on the 16x10 canvas (only drawn on empty pixels), and
+// how far into the twinkle animation each one starts so they don't blink
+// together.
+const SPARKLES = [
+  { x: 1, y: 1, delay: "0s" },
+  { x: 14, y: 0, delay: "0.6s" },
+  { x: 15, y: 8, delay: "1.2s" },
+  { x: 3, y: 9, delay: "0.9s" },
+];
+const SHINY_GLOSS = "rgba(255, 255, 255, 0.7)";
+
+function FishSprite({
+  fish,
+  size = 48,
+  silhouette = false,
+  shiny = false,
+}: FishSpriteProps) {
   const { shape, pattern, colours } = getLook(fish);
   // Centre the shape on the canvas.
   const offsetX = Math.floor((CANVAS_WIDTH - shape[0].length) / 2);
   const offsetY = Math.floor((CANVAS_HEIGHT - shape.length) / 2);
+  const isGloss = shiny && !silhouette;
+  // For the gloss: which columns already have their top body pixel lit.
+  const glossedColumns = new Set<number>();
+  // Canvas pixels the fish covers, so sparkles only go on empty ones.
+  const filled = new Set<string>();
 
   const pixels = [];
   for (let y = 0; y < shape.length; y++) {
@@ -183,9 +207,16 @@ function FishSprite({ fish, size = 48, silhouette = false }: FishSpriteProps) {
       if (cell === "b" && pattern === "spots" && (x + y * 2) % 5 === 0) {
         fill = colours.mark;
       }
+      // Light the topmost body pixel in each column, like light catching a
+      // glossy back.
+      if (isGloss && cell === "b" && !glossedColumns.has(x)) {
+        glossedColumns.add(x);
+        fill = SHINY_GLOSS;
+      }
       if (silhouette) {
         fill = "currentColor";
       }
+      filled.add(`${x + offsetX}-${y + offsetY}`);
 
       pixels.push(
         <rect
@@ -200,9 +231,35 @@ function FishSprite({ fish, size = 48, silhouette = false }: FishSpriteProps) {
     }
   }
 
+  if (isGloss) {
+    for (const sparkle of SPARKLES) {
+      if (filled.has(`${sparkle.x}-${sparkle.y}`)) {
+        continue;
+      }
+      pixels.push(
+        <rect
+          key={`sparkle-${sparkle.x}-${sparkle.y}`}
+          className="fish-sparkle"
+          x={sparkle.x}
+          y={sparkle.y}
+          width="1"
+          height="1"
+          style={{ animationDelay: sparkle.delay }}
+        />,
+      );
+    }
+  }
+
+  let className = "fish-sprite";
+  if (silhouette) {
+    className += " silhouette";
+  } else if (shiny) {
+    className += " shiny";
+  }
+
   return (
     <svg
-      className={silhouette ? "fish-sprite silhouette" : "fish-sprite"}
+      className={className}
       viewBox={`0 0 ${CANVAS_WIDTH} ${CANVAS_HEIGHT}`}
       width={size}
       height={(size * CANVAS_HEIGHT) / CANVAS_WIDTH}

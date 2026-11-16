@@ -1,8 +1,8 @@
 import { FISH, RARITY_CHANCES, type Fish, type Rarity } from "./fish";
 
 // Focused time between catches, in seconds.
-const MIN_CATCH_GAP_SECONDS = 3 ;
-const MAX_CATCH_GAP_SECONDS = 8 ;
+const MIN_CATCH_GAP_SECONDS = 3 * 60;
+const MAX_CATCH_GAP_SECONDS = 8 * 60;
 
 // Picks one item at random, where an item with twice the weight is twice as
 // likely to be picked.
