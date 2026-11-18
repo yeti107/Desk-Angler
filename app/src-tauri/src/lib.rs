@@ -1,4 +1,5 @@
 mod apps;
+#[cfg(target_os = "macos")]
 mod camera;
 mod widget;
 
@@ -24,11 +25,19 @@ fn running_apps() -> Vec<apps::AppInfo> {
 // can wait on the permission prompt, and the window must stay responsive.
 #[tauri::command(async)]
 fn start_camera() -> Result<(), String> {
-    camera::start()
+    #[cfg(target_os = "macos")]
+    return camera::start();
+
+    // TEMPORARY, REMOVE BEFORE RELEASE: pretends the camera started so a
+    // session can run on Windows for widget testing. Fish caught this way are
+    // wrongly saved as camera-verified. Replaced by MediaPipe in Step 2.
+    #[cfg(not(target_os = "macos"))]
+    Ok(())
 }
 
 #[tauri::command(async)]
 fn stop_camera() {
+    #[cfg(target_os = "macos")]
     camera::stop()
 }
 
@@ -64,7 +73,10 @@ pub fn run() {
 
                 let tick = Tick {
                     frontmost_app: apps::frontmost_app(),
+                    #[cfg(target_os = "macos")]
                     person_visible: camera::person_visible(),
+                    #[cfg(not(target_os = "macos"))]
+                    person_visible: None,
                 };
                 let _ = handle.emit("tick", tick);
             });

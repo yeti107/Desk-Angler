@@ -10,8 +10,11 @@ use std::sync::Mutex;
 use std::thread;
 use std::time::{Duration, Instant};
 
+#[cfg(target_os = "macos")]
 use objc2::runtime::AnyObject;
+#[cfg(target_os = "macos")]
 use objc2::ClassType;
+#[cfg(target_os = "macos")]
 use objc2_app_kit::{
     NSPanel, NSStatusWindowLevel, NSWindow, NSWindowCollectionBehavior, NSWindowStyleMask,
 };
@@ -60,6 +63,7 @@ pub fn session_active() -> bool {
 // Turns the widget's window into a floating panel. A normal window cannot
 // appear on top of another app that is in full-screen mode, and it takes
 // keyboard focus when shown; a panel does neither. Must run on the main thread.
+#[cfg(target_os = "macos")]
 pub fn make_floating_panel(widget: &WebviewWindow) {
     let Ok(pointer) = widget.ns_window() else {
         return;
@@ -83,6 +87,13 @@ pub fn make_floating_panel(widget: &WebviewWindow) {
                 | NSWindowCollectionBehavior::IgnoresCycle,
         );
     }
+}
+
+// Placeholder until Step 3: keeps the widget above other windows, but unlike
+// the macOS panel it does not yet float over full-screen apps.
+#[cfg(not(target_os = "macos"))]
+pub fn make_floating_panel(widget: &WebviewWindow) {
+    let _ = widget.set_always_on_top(true);
 }
 
 // Puts the widget in the bottom-right corner of the screen the main window
@@ -139,6 +150,7 @@ fn cursor_is_over(app: &AppHandle, widget: &WebviewWindow) -> bool {
 
 // Shows the widget without giving it keyboard focus or bringing Desk Angler
 // to the front.
+#[cfg(target_os = "macos")]
 fn show(app: &AppHandle, widget: &WebviewWindow) {
     let widget = widget.clone();
     let _ = app.run_on_main_thread(move || {
@@ -148,6 +160,13 @@ fn show(app: &AppHandle, widget: &WebviewWindow) {
             unsafe { (*(pointer as *const NSWindow)).orderFrontRegardless() };
         }
     });
+}
+
+// Placeholder until Step 3: shows the widget, but may take keyboard focus
+// away from the app you were using.
+#[cfg(not(target_os = "macos"))]
+fn show(_app: &AppHandle, widget: &WebviewWindow) {
+    let _ = widget.show();
 }
 
 fn set_interactive(app: &AppHandle, widget: &WebviewWindow, interactive: bool) {
