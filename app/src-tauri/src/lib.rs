@@ -1,6 +1,11 @@
 mod apps;
-#[cfg(target_os = "macos")]
+// The old Apple Vision camera. Only built on macOS with the `apple-vision`
+// feature (`npm run tauri dev -- --features apple-vision`), as a fallback
+// until MediaPipe has been tested on the Mac. Everywhere else, MediaPipe in
+// the webview does the analysing and reports to `presence`.
+#[cfg(all(target_os = "macos", feature = "apple-vision"))]
 mod camera;
+mod presence;
 mod widget;
 
 use std::{thread, time::Duration};
@@ -21,24 +26,55 @@ fn running_apps() -> Vec<apps::AppInfo> {
     apps::running_apps()
 }
 
-// The camera commands are `async` so they run off the main thread: starting
-// can wait on the permission prompt, and the window must stay responsive.
+// Which engine analyses the camera, so the frontend knows whether to run
+// MediaPipe itself.
+#[tauri::command]
+fn camera_engine() -> &'static str {
+    if cfg!(all(target_os = "macos", feature = "apple-vision")) {
+        "apple-vision"
+    } else {
+        "mediapipe"
+    }
+}
+
+// The camera commands are `async` so they run off the main thread: the Apple
+// Vision version can wait on the permission prompt, and the window must stay
+// responsive. With MediaPipe, the frontend has already opened the camera by
+// the time it calls this; this switches the backend's camera state on.
 #[tauri::command(async)]
 fn start_camera() -> Result<(), String> {
-    #[cfg(target_os = "macos")]
+    #[cfg(all(target_os = "macos", feature = "apple-vision"))]
     return camera::start();
 
-    // TEMPORARY, REMOVE BEFORE RELEASE: pretends the camera started so a
-    // session can run on Windows for widget testing. Fish caught this way are
-    // wrongly saved as camera-verified. Replaced by MediaPipe in Step 2.
-    #[cfg(not(target_os = "macos"))]
-    Ok(())
+    #[cfg(not(all(target_os = "macos", feature = "apple-vision")))]
+    {
+        presence::start();
+        Ok(())
+    }
 }
 
 #[tauri::command(async)]
 fn stop_camera() {
-    #[cfg(target_os = "macos")]
-    camera::stop()
+    #[cfg(all(target_os = "macos", feature = "apple-vision"))]
+    camera::stop();
+
+    #[cfg(not(all(target_os = "macos", feature = "apple-vision")))]
+    presence::stop();
+}
+
+// MediaPipe's yes/no for the latest frame, about once a second.
+#[tauri::command]
+fn report_presence(person_visible: bool) {
+    presence::report(person_visible);
+}
+
+// `None` while the camera is off.
+fn person_visible() -> Option<bool> {
+    #[cfg(all(target_os = "macos", feature = "apple-vision"))]
+    return camera::person_visible();
+
+    #[cfg(not(all(target_os = "macos", feature = "apple-vision")))]
+    presence::person_visible()
 }
 
 // The main window reports the session here so the widget can draw it.
@@ -73,10 +109,7 @@ pub fn run() {
 
                 let tick = Tick {
                     frontmost_app: apps::frontmost_app(),
-                    #[cfg(target_os = "macos")]
-                    person_visible: camera::person_visible(),
-                    #[cfg(not(target_os = "macos"))]
-                    person_visible: None,
+                    person_visible: person_visible(),
                 };
                 let _ = handle.emit("tick", tick);
             });
@@ -111,8 +144,10 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             running_apps,
+            camera_engine,
             start_camera,
             stop_camera,
+            report_presence,
             update_session,
             session_info,
             show_main_window

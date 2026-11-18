@@ -26,13 +26,28 @@ serde_json = "1"
 [target.'cfg(target_os = "macos")'.dependencies]
 objc2 = "0.6"
 objc2-app-kit = "0.3"
-objc2-av-foundation = "0.3"
-objc2-vision = "0.3"
-objc2-core-media = "0.3"
-objc2-core-video = "0.3"
-objc2-foundation = "0.3"
-dispatch2 = "0.3"
-block2 = "0.6"
+# Only used by the old Apple Vision camera (see the `apple-vision` feature).
+objc2-av-foundation = { version = "0.3", optional = true }
+objc2-vision = { version = "0.3", optional = true }
+objc2-core-media = { version = "0.3", optional = true }
+objc2-core-video = { version = "0.3", optional = true }
+objc2-foundation = { version = "0.3", optional = true }
+dispatch2 = { version = "0.3", optional = true }
+block2 = { version = "0.6", optional = true }
+
+[features]
+# Builds the old Apple Vision camera (camera.rs) instead of MediaPipe, macOS
+# only: `npm run tauri dev -- --features apple-vision`. A fallback until
+# MediaPipe has been tested on the Mac; delete it and camera.rs after that.
+apple-vision = [
+  "dep:objc2-av-foundation",
+  "dep:objc2-vision",
+  "dep:objc2-core-media",
+  "dep:objc2-core-video",
+  "dep:objc2-foundation",
+  "dep:dispatch2",
+  "dep:block2",
+]
 
 
 # Read the optimization guideline for more details: https://tauri.app/concept/size/#cargo-configuration

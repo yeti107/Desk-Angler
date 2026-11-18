@@ -1,4 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
+import { startMediaPipeCamera, stopMediaPipeCamera } from "./camera";
 import { subscribe } from "./events";
 import { loadJson, saveJson } from "./storage";
 
@@ -18,14 +19,31 @@ export function getRunningApps() {
   return invoke<AppInfo[]>("running_apps");
 }
 
-// Turns the camera on. Fails with a message to show the user if there is no
-// camera or permission was refused.
-export function startCamera() {
-  return invoke<void>("start_camera");
+// Which engine analyses the camera. Normally MediaPipe, here in the frontend;
+// a Mac build with the `apple-vision` feature uses Apple Vision in Rust.
+let usesMediaPipe: Promise<boolean> | null = null;
+
+function cameraUsesMediaPipe() {
+  usesMediaPipe ??= invoke<string>("camera_engine").then(
+    (engine) => engine === "mediapipe",
+  );
+  return usesMediaPipe;
 }
 
-export function stopCamera() {
-  return invoke<void>("stop_camera");
+// Turns the camera on. Fails with a message to show the user if there is no
+// camera or permission was refused.
+export async function startCamera() {
+  if (await cameraUsesMediaPipe()) {
+    await startMediaPipeCamera();
+  }
+  await invoke<void>("start_camera");
+}
+
+export async function stopCamera() {
+  if (await cameraUsesMediaPipe()) {
+    stopMediaPipeCamera();
+  }
+  await invoke<void>("stop_camera");
 }
 
 // Calls the handler once a second, driven by the Rust side. Returns a function

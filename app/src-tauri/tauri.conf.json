@@ -16,7 +16,9 @@
         "label": "main",
         "title": "Desk Angler",
         "width": 800,
-        "height": 600
+        "height": 600,
+        "backgroundThrottling": "disabled",
+        "additionalBrowserArgs": "--disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection,CalculateNativeWinOcclusion --disable-background-timer-throttling --disable-renderer-backgrounding --disable-backgrounding-occluded-windows"
       },
       {
         "label": "widget",
@@ -30,7 +32,8 @@
         "shadow": false,
         "resizable": false,
         "skipTaskbar": true,
-        "acceptFirstMouse": true
+        "acceptFirstMouse": true,
+        "additionalBrowserArgs": "--disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection,CalculateNativeWinOcclusion --disable-background-timer-throttling --disable-renderer-backgrounding --disable-backgrounding-occluded-windows"
       }
     ],
     "security": {
