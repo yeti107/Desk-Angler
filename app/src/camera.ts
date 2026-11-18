@@ -90,7 +90,10 @@ export async function startMediaPipeCamera() {
   let found: Detectors;
   try {
     found = await loadDetectors();
-  } catch {
+  } catch (error) {
+    // Keep the real reason in the console for debugging; the player gets a
+    // friendly message.
+    console.error("Loading MediaPipe failed:", error);
     throw "The person detector couldn't be loaded.";
   }
   const stream = await openCamera();
