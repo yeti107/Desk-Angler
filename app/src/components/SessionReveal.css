@@ -1,0 +1,499 @@
+/* The end-of-session reveal (SessionReveal.tsx). Colours come from the theme
+   tokens in App.css, so light and dark mode both work. Phase 1: a simple flip,
+   a glow per rarity and a hint before good cards. Polish comes later. */
+
+.reveal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 0 0.25rem;
+}
+
+.reveal-count,
+.reveal-prompt {
+  margin: 0;
+  font-family: var(--font-pixel);
+  font-size: 0.9rem;
+}
+
+/* ---------- The pile ---------- */
+
+/* The top card and the face-down pile under it. The pile pokes out below
+   and to the right, so leave room for it. */
+.reveal-stack {
+  position: relative;
+  width: 190px;
+  height: 250px;
+  margin-bottom: 22px;
+}
+
+.reveal-pile {
+  position: absolute;
+  inset: 0;
+}
+
+/* One face-down card in the pile. `--layer` is 1 for the card just under the
+   top one and grows deeper down, so deeper cards sit further out. Each one
+   is turned slightly so the pile looks hand-stacked, not perfect. */
+.reveal-pile-card {
+  position: absolute;
+  inset: 0;
+  border: 3px solid var(--water);
+  border-radius: 12px;
+  background: linear-gradient(var(--water-light), var(--water));
+  box-shadow: 0 3px 0 var(--shadow);
+  transform: translate(
+      calc(var(--layer) * 3px),
+      calc(var(--layer) * 3.5px)
+    )
+    rotate(calc(var(--layer) * 0.6deg));
+}
+
+.reveal-pile-card:nth-child(even) {
+  transform: translate(
+      calc(var(--layer) * 3px),
+      calc(var(--layer) * 3.5px)
+    )
+    rotate(calc(var(--layer) * -0.5deg));
+}
+
+/* ---------- The slam ---------- */
+
+/* A good fish lifts off the pile as it flips, then slams down. Timed so the
+   impact lands as the flip finishes. */
+.reveal-stack.is-slammed .reveal-card {
+  animation: reveal-slam 0.65s ease-in forwards;
+}
+
+.reveal-stack.is-slammed.slam-big .reveal-card {
+  animation: reveal-slam-big 0.8s ease-in forwards;
+}
+
+/* ...and the pile underneath jolts from the impact. */
+.reveal-stack.is-slammed .reveal-pile {
+  animation: reveal-pile-jolt 0.35s ease-out 0.4s;
+}
+
+.reveal-stack.is-slammed.slam-big .reveal-pile {
+  animation: reveal-pile-jolt-big 0.5s ease-out 0.5s;
+}
+
+@keyframes reveal-slam {
+  0% {
+    transform: translateY(0) scale(1);
+  }
+  40% {
+    transform: translateY(-16px) scale(1.08);
+  }
+  62% {
+    transform: translateY(0) scale(0.96);
+  }
+  80% {
+    transform: translateY(0) scale(1.02);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes reveal-slam-big {
+  0% {
+    transform: translateY(0) scale(1);
+  }
+  45% {
+    transform: translateY(-28px) scale(1.15);
+  }
+  62% {
+    transform: translateY(0) scale(0.94);
+  }
+  78% {
+    transform: translateY(0) scale(1.03);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes reveal-pile-jolt {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  25% {
+    transform: translate(-3px, 2px);
+  }
+  50% {
+    transform: translate(3px, -1px);
+  }
+  75% {
+    transform: translate(-1px, 1px);
+  }
+}
+
+@keyframes reveal-pile-jolt-big {
+  0%,
+  100% {
+    transform: translate(0, 0) rotate(0);
+  }
+  15% {
+    transform: translate(-5px, 4px) rotate(-1deg);
+  }
+  35% {
+    transform: translate(5px, -2px) rotate(1deg);
+  }
+  55% {
+    transform: translate(-3px, 2px) rotate(-0.5deg);
+  }
+  75% {
+    transform: translate(2px, -1px) rotate(0.3deg);
+  }
+}
+
+/* ---------- The card ---------- */
+
+/* The button is the card. The perspective gives the flip its depth. */
+.app button.reveal-card {
+  /* Sits above the pile. */
+  position: relative;
+  z-index: 1;
+  width: 190px;
+  height: 250px;
+  padding: 0;
+  border: none;
+  background: none;
+  box-shadow: none;
+  perspective: 900px;
+  cursor: pointer;
+}
+
+.app button.reveal-card:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 4px;
+  border-radius: 12px;
+}
+
+/* Both faces sit on this, and it's what rotates. */
+.reveal-card-inner {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.6s cubic-bezier(0.3, 1.4, 0.5, 1);
+}
+
+.reveal-card.is-flipped .reveal-card-inner {
+  transform: rotateY(180deg);
+}
+
+.reveal-face {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  border: 3px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 4px 0 var(--shadow);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+/* Face-down: a lake-blue back with a big pixel question mark. */
+.reveal-back {
+  background:
+    repeating-linear-gradient(
+      0deg,
+      transparent 0 14px,
+      rgba(255, 255, 255, 0.12) 14px 16px
+    ),
+    linear-gradient(var(--water-light), var(--water));
+  border-color: var(--water);
+}
+
+.reveal-back-mark {
+  font-family: var(--font-pixel);
+  font-size: 4.5rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.85);
+  text-shadow: 0 4px 0 rgba(0, 0, 0, 0.2);
+}
+
+/* Face-up: the fish. Starts turned away, so the flip brings it round. */
+.reveal-front {
+  background: var(--surface);
+  transform: rotateY(180deg);
+  padding: 0.75rem;
+  text-align: center;
+}
+
+.reveal-name {
+  font-family: var(--font-pixel);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+/* ---------- Rarity colours ---------- */
+
+/* The colour each card glows and hints in. Kept at the same specificity as
+   the rarity rules below, so they can override it. */
+.reveal-card {
+  --glow: transparent;
+}
+
+.reveal-uncommon {
+  --glow: var(--uncommon-text);
+}
+
+.reveal-rare {
+  --glow: var(--rare-text);
+}
+
+.reveal-legendary {
+  --glow: var(--legendary-text);
+}
+
+/* Face-up glow in the rarity colour. Commons stay plain. */
+.reveal-card.is-flipped:not(.reveal-common) .reveal-front {
+  border-color: var(--glow);
+  box-shadow:
+    0 4px 0 var(--shadow),
+    0 0 18px var(--glow);
+}
+
+/* Legendaries get a slow, bigger pulse once revealed. */
+.reveal-legendary.is-flipped .reveal-front {
+  animation: reveal-legendary-pulse 1.6s ease-in-out 0.6s infinite;
+}
+
+@keyframes reveal-legendary-pulse {
+  0%,
+  100% {
+    box-shadow:
+      0 4px 0 var(--shadow),
+      0 0 18px var(--glow);
+  }
+  50% {
+    box-shadow:
+      0 4px 0 var(--shadow),
+      0 0 36px 6px var(--glow);
+  }
+}
+
+/* ---------- Hints while face-down ---------- */
+
+/* Rare: a soft glow around the back. */
+.reveal-rare:not(.is-flipped) .reveal-back {
+  animation: reveal-hint-glow 1.4s ease-in-out infinite;
+}
+
+/* Legendary: glows harder and gives a little shake now and then. */
+.reveal-legendary:not(.is-flipped) .reveal-card-inner {
+  animation: reveal-hint-shake 2.2s ease-in-out infinite;
+}
+
+.reveal-legendary:not(.is-flipped) .reveal-back {
+  animation: reveal-hint-glow-strong 1.1s ease-in-out infinite;
+}
+
+@keyframes reveal-hint-glow {
+  0%,
+  100% {
+    box-shadow:
+      0 4px 0 var(--shadow),
+      0 0 6px var(--glow);
+  }
+  50% {
+    box-shadow:
+      0 4px 0 var(--shadow),
+      0 0 22px 2px var(--glow);
+  }
+}
+
+@keyframes reveal-hint-glow-strong {
+  0%,
+  100% {
+    box-shadow:
+      0 4px 0 var(--shadow),
+      0 0 12px 2px var(--glow);
+  }
+  50% {
+    box-shadow:
+      0 4px 0 var(--shadow),
+      0 0 34px 8px var(--glow);
+  }
+}
+
+/* Still most of the time, then a quick wobble. */
+@keyframes reveal-hint-shake {
+  0%,
+  70%,
+  100% {
+    transform: rotate(0);
+  }
+  74% {
+    transform: rotate(-3deg);
+  }
+  78% {
+    transform: rotate(3deg);
+  }
+  82% {
+    transform: rotate(-2deg);
+  }
+  86% {
+    transform: rotate(2deg);
+  }
+  90% {
+    transform: rotate(0);
+  }
+}
+
+/* ---------- Shiny ---------- */
+
+/* Face-down shiny: a shimmering pastel border on the back. Wins over the
+   rarity hint, since shinies are rarer than any rarity. */
+.reveal-shiny:not(.is-flipped) .reveal-back {
+  border-color: transparent;
+  background:
+    linear-gradient(var(--water-light), var(--water)) padding-box,
+    linear-gradient(
+        120deg,
+        var(--shiny-1),
+        var(--shiny-2),
+        var(--shiny-3),
+        var(--shiny-1)
+      )
+      border-box;
+  background-size:
+    100% 100%,
+    300% 300%;
+  animation: reveal-shiny-border 3s linear infinite;
+  box-shadow:
+    0 4px 0 var(--shadow),
+    0 0 20px var(--shiny-1);
+}
+
+@keyframes reveal-shiny-border {
+  from {
+    background-position:
+      0 0,
+      0% 50%;
+  }
+  to {
+    background-position:
+      0 0,
+      300% 50%;
+  }
+}
+
+/* Face-up shiny: the same shimmering border, plus a sheen across the card. */
+.reveal-shiny.is-flipped .reveal-front {
+  border-color: transparent;
+  background:
+    linear-gradient(var(--surface), var(--surface)) padding-box,
+    linear-gradient(
+        120deg,
+        var(--shiny-1),
+        var(--shiny-2),
+        var(--shiny-3),
+        var(--shiny-1)
+      )
+      border-box;
+  background-size:
+    100% 100%,
+    300% 300%;
+  animation: reveal-shiny-border 3s linear infinite;
+  box-shadow:
+    0 4px 0 var(--shadow),
+    0 0 24px var(--shiny-1);
+  overflow: hidden;
+}
+
+.reveal-shiny.is-flipped .reveal-front::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    100deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.6) 50%,
+    transparent 70%
+  );
+  transform: translateX(-100%);
+  animation: shiny-sheen 3s ease-in-out 0.6s infinite;
+  pointer-events: none;
+}
+
+/* ---------- Below the card ---------- */
+
+/* The little row of fish already flipped. */
+.reveal-seen {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.3rem;
+  list-style: none;
+  margin: 0.25rem 0 0;
+  padding: 0;
+  max-width: 100%;
+}
+
+.reveal-seen li {
+  display: flex;
+  padding: 2px;
+  background: var(--surface-2);
+  border: 2px solid var(--border);
+  border-radius: 6px;
+  animation: reveal-seen-in 0.3s ease-out;
+}
+
+@keyframes reveal-seen-in {
+  from {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* ---------- Summary, once every card is seen ---------- */
+
+.reveal-summary-total {
+  margin: 0.25rem 0 0.5rem;
+  font-family: var(--font-pixel);
+  font-weight: 700;
+}
+
+/* ---------- Reduced motion ---------- */
+
+/* No flip, shake or pulsing for players who turn motion off. The card swaps
+   faces instantly, and the hints become a steady glow. */
+@media (prefers-reduced-motion: reduce) {
+  .reveal-card-inner {
+    transition: none;
+  }
+  .reveal-card .reveal-card-inner,
+  .reveal-card .reveal-back,
+  .reveal-card .reveal-front,
+  .reveal-card .reveal-front::after,
+  .reveal-seen li,
+  .reveal-stack .reveal-card,
+  .reveal-stack .reveal-pile {
+    animation: none !important;
+  }
+  .reveal-card .reveal-front::after {
+    display: none;
+  }
+  .reveal-rare:not(.is-flipped) .reveal-back,
+  .reveal-legendary:not(.is-flipped) .reveal-back {
+    box-shadow:
+      0 4px 0 var(--shadow),
+      0 0 20px 2px var(--glow);
+  }
+}

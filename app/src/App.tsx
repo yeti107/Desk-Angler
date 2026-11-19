@@ -3,9 +3,9 @@ import "./App.css";
 import Collection from "./components/Collection";
 import DistractionSettings from "./components/DistractionSettings";
 import Fisherman from "./components/Fisherman";
-import FishSprite from "./components/FishSprite";
 import Lakeside from "./components/Lakeside";
 import Market from "./components/Market";
+import SessionReveal from "./components/SessionReveal";
 import {
   loadDistractions,
   onTick,
@@ -14,11 +14,9 @@ import {
   stopCamera,
   type AppInfo,
 } from "./detection";
-import { getFish } from "./game/fish";
 import { rollCatchGap, rollFish } from "./game/fishing";
 import {
   createCatch,
-  describeSize,
   getPrice,
   marketGroupKey,
   loadInventory,
@@ -307,35 +305,7 @@ function App() {
           {sessionCatches.length === 0 ? (
             <p>Nothing bit this time.</p>
           ) : (
-            <ul className="catch-list">
-              {sessionCatches.map((caught) => {
-                const fish = getFish(caught.fishId);
-                return (
-                  <li
-                    key={caught.id}
-                    className={caught.isShiny ? "shiny-row" : undefined}
-                  >
-                    <span className="fish-line">
-                      {fish && (
-                        <FishSprite fish={fish} size={32} shiny={caught.isShiny} />
-                      )}
-                      {fish ? fish.name : "Unknown fish"}
-                      <span className="fish-size">{describeSize(caught)}</span>
-                    </span>
-                    <span className="pill-row">
-                      {fish && (
-                        <span className={`rarity rarity-${fish.rarity}`}>
-                          {fish.rarity}
-                        </span>
-                      )}
-                      {caught.isShiny && (
-                        <span className="rarity rarity-shiny">shiny</span>
-                      )}
-                    </span>
-                  </li>
-                );
-              })}
-            </ul>
+            <SessionReveal catches={sessionCatches} />
           )}
 
           <div className="button-row">
