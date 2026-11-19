@@ -126,11 +126,32 @@ export async function startMediaPipeCamera() {
     throw "The camera could not be set up.";
   }
 
+  if (thisAttempt !== attempt) {
+    // Stopped while the video was starting, for example because the window
+    // was hidden straight after being shown.
+    stopTracks(stream);
+    video.remove();
+    return;
+  }
+
+  // The video's position at the last check. -1 can never be a real
+  // position, so the first check always counts as a new frame.
+  let previousTime = -1;
   const timer = window.setInterval(() => {
     // Not enough of the video has arrived yet to analyse a frame.
     if (video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) {
       return;
     }
+
+    // Safety net: macOS stops updating the video of a window that isn't on
+    // screen (minimised or covered), and analysing the last frame would keep
+    // saying the person is there. If the video hasn't moved since the last
+    // check, report nothing, so the backend treats the camera as stale and
+    // the player as away.
+    if (previousTime === video.currentTime) {
+      return;
+    }
+    previousTime = video.currentTime;
 
     let personVisible: boolean;
     try {

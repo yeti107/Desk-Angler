@@ -9,6 +9,7 @@ import {
 } from "../widgetBridge";
 import Fisherman from "./Fisherman";
 import "./Widget.css";
+import { useCameraWhileVisible } from "../useCameraWhileVisible";
 
 // The page shown inside the small always-on-top window.
 function Widget() {
@@ -27,6 +28,8 @@ function Widget() {
   }, []);
 
   useEffect(() => onWidgetInteractive(setInteractive), []);
+  
+  useCameraWhileVisible(info.active);
 
   return (
     <div className={interactive ? "widget interactive" : "widget"}>

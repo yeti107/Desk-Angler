@@ -37,6 +37,7 @@ import {
 } from "./game/gold";
 import { INITIAL_PRESENCE, updatePresence } from "./presence";
 import { onTogglePauseRequest, publishSessionInfo } from "./widgetBridge";
+import { useCameraWhileVisible } from "./useCameraWhileVisible";
 
 type SessionState = "idle" | "running" | "ended";
 // Which screen to show while no session is running.
@@ -147,6 +148,8 @@ function App() {
   useEffect(() => {
     saveGold(gold);
   }, [gold]);
+
+  useCameraWhileVisible(session === "running");
 
   // Keep the widget up to date with what it needs to draw.
   const biteCount = sessionCatches.length;
