@@ -41,41 +41,59 @@ function Collection({
       </p>
 
       <div className="collection-list">
-      {species.map(({ fish, caught }) =>
-        !discoveries.includes(fish.id) ? (
-          <div key={fish.id} className="panel collection-card undiscovered">
-            <FishSprite fish={fish} size={64} silhouette />
-            <h3>???</h3>
-          </div>
-        ) : (
+      {species.map(({ fish, caught }) => {
+        if (!discoveries.includes(fish.id)) {
+          return (
+            <div key={fish.id} className="panel collection-card undiscovered">
+              <FishSprite fish={fish} size={64} silhouette />
+              <h3>???</h3>
+            </div>
+          );
+        }
+
+        // Once a shiny of this species has ever been caught, the card turns
+        // into a holo card and shows the shiny sprite (permanently, even if
+        // the shiny has been sold).
+        const shinyFound = shinyDiscoveries.includes(fish.id);
+        return (
           <div
             key={fish.id}
             className={`panel collection-card${
-              shinyDiscoveries.includes(fish.id) ? " shiny-border" : ""
+              shinyFound ? " shiny-border shiny-card" : ""
             }`}
           >
-            <FishSprite fish={fish} size={64} />
+            {shinyFound && (
+              <span className="shiny-sparkles" aria-hidden="true">
+                <span />
+                <span />
+                <span />
+                <span />
+              </span>
+            )}
+            <FishSprite fish={fish} size={64} shiny={shinyFound} />
             <div className="collection-card-top">
               <h3>{fish.name}</h3>
-              <span className={`rarity rarity-${fish.rarity}`}>
-                {fish.rarity}
+              <span className="pill-row">
+                <span className={`rarity rarity-${fish.rarity}`}>
+                  {fish.rarity}
+                </span>
+                {shinyFound && <span className="rarity rarity-shiny">shiny</span>}
               </span>
             </div>
             <div className="muted">You hold {caught.length}</div>
-            {shinyDiscoveries.includes(fish.id) && (
-              <div className="shiny-label">✨ Shiny found</div>
-            )}
             <ul className="collection-catches">
               {caught.map((one) => (
                 <li key={one.id}>
-                  {one.isShiny && "✨ "}
+                  {one.isShiny && (
+                    <span className="rarity rarity-shiny catch-shiny">shiny</span>
+                  )}
                   {describeSize(one)} · caught {formatCaughtAt(one.caughtAt)}
                 </li>
               ))}
             </ul>
           </div>
-        ),
-      )}
+        );
+      })}
       </div>
     </div>
   );

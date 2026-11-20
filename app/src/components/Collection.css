@@ -42,3 +42,167 @@
 .collection-catches li {
   padding: 0.15rem 0;
 }
+
+/* ---------- Shiny holo card ----------
+   A species with a shiny found becomes a holo card: a thicker shimmering
+   border with a glow around it, a rainbow foil tint over the whole card, a
+   sheen that sweeps across now and then, and pixel sparkles in the corners.
+   Two classes so it wins over .shiny-border in App.css. */
+.collection-card.shiny-card {
+  position: relative;
+  overflow: hidden;
+  border-width: 4px;
+  background:
+    /* Foil tint: the shiny colours, faint, drifting slowly. */
+    linear-gradient(
+        120deg,
+        color-mix(in srgb, var(--shiny-1) 22%, transparent),
+        color-mix(in srgb, var(--shiny-2) 22%, transparent),
+        color-mix(in srgb, var(--shiny-3) 22%, transparent),
+        color-mix(in srgb, var(--shiny-1) 22%, transparent)
+      )
+      padding-box,
+    linear-gradient(var(--surface), var(--surface)) padding-box,
+    /* Border: the same moving gradient as other shiny borders. */
+    linear-gradient(
+        120deg,
+        var(--shiny-1),
+        var(--shiny-2),
+        var(--shiny-3),
+        var(--shiny-1)
+      )
+      border-box;
+  background-size: 300% 300%, 100% 100%, 300% 300%;
+  animation:
+    shiny-card-shimmer 6s linear infinite,
+    shiny-card-glow 3s ease-in-out infinite;
+}
+
+@keyframes shiny-card-shimmer {
+  from {
+    background-position: 0% 50%, 0 0, 0% 50%;
+  }
+  to {
+    background-position: 300% 50%, 0 0, 300% 50%;
+  }
+}
+
+/* The glow around the card shifts between two of the shiny colours. Keeps
+   the panel's usual drop shadow underneath. */
+@keyframes shiny-card-glow {
+  0%,
+  100% {
+    box-shadow:
+      0 0 14px color-mix(in srgb, var(--shiny-1) 70%, transparent),
+      0 3px 0 var(--shadow);
+  }
+  50% {
+    box-shadow:
+      0 0 20px color-mix(in srgb, var(--shiny-2) 80%, transparent),
+      0 3px 0 var(--shadow);
+  }
+}
+
+/* The sheen: a soft band of light that sweeps across the card, then rests
+   for a few seconds before the next sweep. */
+.collection-card.shiny-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    105deg,
+    transparent 35%,
+    rgba(255, 255, 255, 0.5) 50%,
+    transparent 65%
+  );
+  transform: translateX(-100%);
+  animation: shiny-card-sheen 5s ease-in-out 1s infinite;
+}
+
+@keyframes shiny-card-sheen {
+  0% {
+    transform: translateX(-100%);
+  }
+  30%,
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Pixel sparkles: four little plus-shaped stars in the corners, twinkling
+   one after another. */
+.shiny-sparkles span {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  pointer-events: none;
+  clip-path: polygon(
+    40% 0, 60% 0, 60% 40%, 100% 40%, 100% 60%, 60% 60%,
+    60% 100%, 40% 100%, 40% 60%, 0 60%, 0 40%, 40% 40%
+  );
+  opacity: 0;
+  animation: shiny-card-twinkle 2.4s ease-in-out infinite;
+}
+
+.shiny-sparkles span:nth-child(1) {
+  top: 8px;
+  left: 10px;
+  background: var(--shiny-1);
+}
+.shiny-sparkles span:nth-child(2) {
+  top: 14px;
+  right: 12px;
+  background: var(--shiny-2);
+  animation-delay: 0.6s;
+}
+.shiny-sparkles span:nth-child(3) {
+  bottom: 12px;
+  right: 10px;
+  background: var(--shiny-3);
+  animation-delay: 1.2s;
+}
+.shiny-sparkles span:nth-child(4) {
+  bottom: 10px;
+  left: 14px;
+  background: var(--shiny-2);
+  animation-delay: 1.8s;
+}
+
+@keyframes shiny-card-twinkle {
+  0%,
+  100% {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* A small shiny pill in front of a shiny catch in the card's list. */
+.collection-catches .catch-shiny {
+  font-size: 0.65rem;
+  padding: 0 0.4rem;
+  margin-right: 0.35rem;
+}
+
+/* Reduced motion: a steady foil and glow, sparkles shown still, no sheen. */
+@media (prefers-reduced-motion: reduce) {
+  .collection-card.shiny-card,
+  .shiny-sparkles span {
+    animation: none;
+  }
+  .collection-card.shiny-card {
+    box-shadow:
+      0 0 14px color-mix(in srgb, var(--shiny-1) 70%, transparent),
+      0 3px 0 var(--shadow);
+  }
+  .collection-card.shiny-card::after {
+    display: none;
+  }
+  .shiny-sparkles span {
+    opacity: 1;
+  }
+}

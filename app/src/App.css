@@ -422,13 +422,6 @@ html:not(.widget-window) body {
   }
 }
 
-.shiny-label {
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--shiny-text);
-  white-space: nowrap;
-}
-
 /* "Shiny" pill, sitting next to the rarity pill. Filled with the same moving
    gradient as the shiny border. */
 .rarity-shiny {
