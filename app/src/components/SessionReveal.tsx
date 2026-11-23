@@ -7,6 +7,10 @@ import "./SessionReveal.css";
 // The most face-down cards drawn in the pile. More catches than this still
 // work; the pile just stops growing.
 const MAX_PILE_LAYERS = 6;
+// How far a shiny card leans toward the cursor, in degrees.
+const MAX_TILT_DEGREES = 14;
+// How many pixel sparkles burst out when a shiny is flipped.
+const BURST_SPARKLES = 14;
 
 type SessionRevealProps = {
   // This session's catches, in the order they were caught. Must not be empty:
@@ -22,6 +26,11 @@ function SessionReveal({ catches }: SessionRevealProps) {
   const [index, setIndex] = useState(0);
   // [2] Whether that card has been flipped face-up yet.
   const [flipped, setFlipped] = useState(false);
+  // Whether a flipped shiny has finished landing, so it can follow the mouse
+  // without fighting the flip and slam animations.
+  const [canTilt, setCanTilt] = useState(false);
+  // Whether the cursor is currently tilting the shiny card.
+  const [tilting, setTilting] = useState(false);
 
   // [3] Worked out from the state above, not stored: once the index has gone
   // past the last catch, every card has been seen.
@@ -36,7 +45,51 @@ function SessionReveal({ catches }: SessionRevealProps) {
     } else {
       setIndex(index + 1);
       setFlipped(false);
+      setCanTilt(false);
+      setTilting(false);
     }
+  }
+
+  // The big slam is the last part of a shiny's flip. Once it ends, the card
+  // is free to follow the mouse. The target check ignores animations on the
+  // elements inside the card.
+  function finishLanding(event: React.AnimationEvent<HTMLButtonElement>) {
+    if (
+      event.target === event.currentTarget &&
+      event.animationName === "reveal-slam-big" &&
+      current.isShiny
+    ) {
+      setCanTilt(true);
+    }
+  }
+
+  // Passes the cursor position to the CSS, which tilts the card and moves the
+  // foil and glare. Setting the variables directly avoids a React re-render
+  // on every mouse movement.
+  function tiltCard(event: React.PointerEvent<HTMLButtonElement>) {
+    if (!canTilt) {
+      return;
+    }
+
+    const box = event.currentTarget.getBoundingClientRect();
+    const x = (event.clientX - box.left) / box.width;
+    const y = (event.clientY - box.top) / box.height;
+    const style = event.currentTarget.style;
+    style.setProperty("--holo-x", `${x * 100}%`);
+    style.setProperty("--holo-y", `${y * 100}%`);
+    style.setProperty("--tilt-x", `${(0.5 - y) * 2 * MAX_TILT_DEGREES}deg`);
+    style.setProperty("--tilt-y", `${(x - 0.5) * 2 * MAX_TILT_DEGREES}deg`);
+    setTilting(true);
+  }
+
+  // Clearing the variables lets the card settle back to facing forward.
+  function stopTilt(event: React.PointerEvent<HTMLButtonElement>) {
+    const style = event.currentTarget.style;
+    style.removeProperty("--holo-x");
+    style.removeProperty("--holo-y");
+    style.removeProperty("--tilt-x");
+    style.removeProperty("--tilt-y");
+    setTilting(false);
   }
 
   // [5] Skip to the end. Jumping the index past the last catch makes `done`
@@ -72,11 +125,13 @@ function SessionReveal({ catches }: SessionRevealProps) {
     `reveal-${rarity}`,
     current.isShiny ? "reveal-shiny" : "",
     flipped ? "is-flipped" : "",
+    tilting ? "is-tilting" : "",
   ].join(" ");
 
   // [7] How many face-down cards are still waiting under the top one. The
   // pile only draws a few, so a huge haul doesn't fill the screen.
   const underneath = catches.length - index - 1;
+  const isLastCard = underneath === 0;
   const pileLayers = Math.min(underneath, MAX_PILE_LAYERS);
 
   // [8] Good fish get slammed down onto the pile when flipped, which makes
@@ -113,11 +168,10 @@ function SessionReveal({ catches }: SessionRevealProps) {
           key={current.id}
           className={cardClasses}
           onClick={tapCard}
-          aria-label={
-            flipped
-              ? `${fish?.name ?? "Unknown fish"}. Next card`
-              : "Face-down card. Flip it"
-          }
+          onAnimationEnd={finishLanding}
+          onPointerMove={tiltCard}
+          onPointerLeave={stopTilt}
+          aria-label={flipped ? `${fish?.name ?? "Unknown fish"}. ${isLastCard ? "Finish" : "Next card"}` : "Face-down card. Flip it"}
         >
           <span className="reveal-card-inner">
             <span className="reveal-face reveal-back" aria-hidden="true">
@@ -137,11 +191,28 @@ function SessionReveal({ catches }: SessionRevealProps) {
               <span className="fish-size">{describeSize(current)}</span>
             </span>
           </span>
+
+          {/* The flash and sparkles when a shiny turns over. */}
+          {current.isShiny && flipped && (
+            <span className="reveal-burst" aria-hidden="true">
+              {Array.from({ length: BURST_SPARKLES }, (_, i) => (
+                <span
+                  key={i}
+                  style={
+                    {
+                      "--angle": `${(360 / BURST_SPARKLES) * i}deg`,
+                      "--distance": `${130 + (i % 3) * 28}px`,
+                    } as React.CSSProperties
+                  }
+                />
+              ))}
+            </span>
+          )}
         </button>
       </div>
 
       <p className="reveal-prompt muted">
-        {flipped ? "Tap for the next one" : "Tap to flip"}
+        {flipped ? (isLastCard ? "Tap to finish" : "Tap for the next one") : "Tap to flip"}
       </p>
 
       {seen.length > 0 && (

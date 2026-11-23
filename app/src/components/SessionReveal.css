@@ -164,6 +164,8 @@
   background: none;
   box-shadow: none;
   perspective: 900px;
+  /* Lets the shiny burst spill outside the card. */
+  overflow: visible;
   cursor: pointer;
 }
 
@@ -426,6 +428,177 @@
   transform: translateX(-100%);
   animation: shiny-sheen 3s ease-in-out 0.6s infinite;
   pointer-events: none;
+}
+
+/* ---------- Shiny holo foil ---------- */
+
+/* Where the cursor is. SessionReveal overrides these while tilting. */
+.reveal-shiny {
+  --holo-x: 50%;
+  --holo-y: 50%;
+  --tilt-x: 0deg;
+  --tilt-y: 0deg;
+}
+
+/* Lean toward the cursor. This stays the same list of rotations with or
+   without a cursor: if the list changed shape when the cursor left, the
+   browser would blend the two the long way round and the card would re-flip. */
+.reveal-card.reveal-shiny.is-flipped .reveal-card-inner {
+  transform: rotateX(var(--tilt-x)) rotateY(calc(180deg + var(--tilt-y)));
+}
+
+/* The quick transition keeps the card feeling attached to the cursor. */
+.reveal-card.reveal-shiny.is-flipped.is-tilting .reveal-card-inner {
+  transition: transform 0.08s linear;
+}
+
+/* The foil: rainbow colours with fine diagonal lines, over the whole card
+   but behind the fish and text. */
+.reveal-shiny.is-flipped .reveal-front::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-linear-gradient(
+      115deg,
+      rgba(255, 255, 255, 0.24) 0 2px,
+      transparent 2px 9px
+    ),
+    linear-gradient(
+      115deg,
+      var(--shiny-1),
+      var(--shiny-2),
+      var(--shiny-3),
+      var(--shiny-1),
+      var(--shiny-2),
+      var(--shiny-3)
+    );
+  background-size:
+    100% 100%,
+    300% 300%;
+  background-position:
+    0 0,
+    var(--holo-x) var(--holo-y);
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+/* With no cursor on the card, the foil drifts by itself. */
+.reveal-shiny.is-flipped:not(.is-tilting) .reveal-front::before {
+  animation: reveal-holo-drift 5s ease-in-out infinite alternate;
+}
+
+@keyframes reveal-holo-drift {
+  from {
+    background-position:
+      0 0,
+      0% 40%;
+  }
+  to {
+    background-position:
+      0 0,
+      100% 60%;
+  }
+}
+
+/* Keep the fish and text above the foil. */
+.reveal-shiny.is-flipped .reveal-front > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* The light on top of the card. */
+.reveal-shiny.is-flipped .reveal-front::after {
+  z-index: 2;
+}
+
+/* While tilting, the sweeping sheen becomes a glare under the cursor. */
+.reveal-shiny.is-flipped.is-tilting .reveal-front::after {
+  background: radial-gradient(
+    circle at var(--holo-x) var(--holo-y),
+    rgba(255, 255, 255, 0.7),
+    rgba(255, 255, 255, 0.15) 28%,
+    transparent 58%
+  );
+  transform: none;
+  animation: none;
+}
+
+/* ---------- Shiny flip burst ---------- */
+
+.reveal-burst {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+}
+
+/* The white flash as the fish comes into view. */
+.reveal-burst::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+  background: radial-gradient(circle, #fff 35%, rgba(255, 255, 255, 0.75) 70%);
+  box-shadow: 0 0 44px 16px rgba(255, 255, 255, 0.85);
+  opacity: 0;
+  animation: reveal-burst-flash 0.55s ease-out 0.08s forwards;
+}
+
+@keyframes reveal-burst-flash {
+  0% {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  18% {
+    opacity: 1;
+    transform: scale(1.04);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.22);
+  }
+}
+
+/* Plus-shaped pixel sparkles, each flying out along its own angle. */
+.reveal-burst span {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 12px;
+  height: 12px;
+  margin: -6px 0 0 -6px;
+  background: var(--shiny-1);
+  clip-path: polygon(
+    40% 0, 60% 0, 60% 40%, 100% 40%, 100% 60%, 60% 60%,
+    60% 100%, 40% 100%, 40% 60%, 0 60%, 0 40%, 40% 40%
+  );
+  opacity: 0;
+  animation: reveal-burst-sparkle 0.8s cubic-bezier(0.15, 0.7, 0.3, 1) 0.1s
+    forwards;
+}
+
+.reveal-burst span:nth-child(3n + 2) {
+  background: var(--shiny-2);
+}
+
+.reveal-burst span:nth-child(3n) {
+  background: var(--shiny-3);
+}
+
+@keyframes reveal-burst-sparkle {
+  0% {
+    opacity: 1;
+    transform: rotate(var(--angle)) translateY(0) scale(0.6);
+  }
+  65% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: rotate(var(--angle))
+      translateY(calc(var(--distance) * -1)) scale(1.3);
+  }
 }
 
 /* ---------- Below the card ---------- */
