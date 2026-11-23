@@ -415,7 +415,7 @@
   overflow: hidden;
 }
 
-.reveal-shiny.is-flipped .reveal-front::after {
+.reveal-holo.is-flipped .reveal-front::after {
   content: "";
   position: absolute;
   inset: 0;
@@ -433,28 +433,50 @@
 /* ---------- Shiny holo foil ---------- */
 
 /* Where the cursor is. SessionReveal overrides these while tilting. */
-.reveal-shiny {
+.reveal-holo {
   --holo-x: 50%;
   --holo-y: 50%;
   --tilt-x: 0deg;
   --tilt-y: 0deg;
+  /* The foil colours: rainbow for a shiny. */
+  --foil-1: var(--shiny-1);
+  --foil-2: var(--shiny-2);
+  --foil-3: var(--shiny-3);
+}
+
+/* A plain legendary has pure gold foil. */
+.reveal-holo.reveal-legendary {
+  --foil-1: var(--gold-light);
+  --foil-2: var(--gold);
+  --foil-3: var(--gold-deep);
+}
+
+/* A legendary shiny has rainbow and gold together. */
+.reveal-holo.reveal-legendary.reveal-shiny {
+  --foil-1: var(--shiny-1);
+  --foil-2: var(--gold);
+  --foil-3: var(--shiny-2);
+}
+
+.reveal-holo.is-flipped .reveal-front {
+  overflow: hidden;
 }
 
 /* Lean toward the cursor. This stays the same list of rotations with or
    without a cursor: if the list changed shape when the cursor left, the
    browser would blend the two the long way round and the card would re-flip. */
-.reveal-card.reveal-shiny.is-flipped .reveal-card-inner {
+.reveal-card.reveal-holo.is-flipped .reveal-card-inner {
   transform: rotateX(var(--tilt-x)) rotateY(calc(180deg + var(--tilt-y)));
 }
 
 /* The quick transition keeps the card feeling attached to the cursor. */
-.reveal-card.reveal-shiny.is-flipped.is-tilting .reveal-card-inner {
+.reveal-card.reveal-holo.is-flipped.is-tilting .reveal-card-inner {
   transition: transform 0.08s linear;
 }
 
 /* The foil: rainbow colours with fine diagonal lines, over the whole card
    but behind the fish and text. */
-.reveal-shiny.is-flipped .reveal-front::before {
+.reveal-holo.is-flipped .reveal-front::before {
   content: "";
   position: absolute;
   inset: 0;
@@ -466,12 +488,12 @@
     ),
     linear-gradient(
       115deg,
-      var(--shiny-1),
-      var(--shiny-2),
-      var(--shiny-3),
-      var(--shiny-1),
-      var(--shiny-2),
-      var(--shiny-3)
+      var(--foil-1),
+      var(--foil-2),
+      var(--foil-3),
+      var(--foil-1),
+      var(--foil-2),
+      var(--foil-3)
     );
   background-size:
     100% 100%,
@@ -484,7 +506,7 @@
 }
 
 /* With no cursor on the card, the foil drifts by itself. */
-.reveal-shiny.is-flipped:not(.is-tilting) .reveal-front::before {
+.reveal-holo.is-flipped:not(.is-tilting) .reveal-front::before {
   animation: reveal-holo-drift 5s ease-in-out infinite alternate;
 }
 
@@ -502,18 +524,18 @@
 }
 
 /* Keep the fish and text above the foil. */
-.reveal-shiny.is-flipped .reveal-front > * {
+.reveal-holo.is-flipped .reveal-front > * {
   position: relative;
   z-index: 1;
 }
 
 /* The light on top of the card. */
-.reveal-shiny.is-flipped .reveal-front::after {
+.reveal-holo.is-flipped .reveal-front::after {
   z-index: 2;
 }
 
 /* While tilting, the sweeping sheen becomes a glare under the cursor. */
-.reveal-shiny.is-flipped.is-tilting .reveal-front::after {
+.reveal-holo.is-flipped.is-tilting .reveal-front::after {
   background: radial-gradient(
     circle at var(--holo-x) var(--holo-y),
     rgba(255, 255, 255, 0.7),
@@ -601,6 +623,110 @@
   }
 }
 
+/* ---------- Legendary ---------- */
+
+/* A shimmering gold border. This also applies to legendary shinies, whose
+   holo foil sits inside it. */
+.reveal-card.reveal-legendary.is-flipped {
+  --glow: var(--gold);
+}
+
+.reveal-card.reveal-legendary.is-flipped .reveal-front {
+  border-color: transparent;
+  background:
+    linear-gradient(var(--surface), var(--surface)) padding-box,
+    linear-gradient(
+        120deg,
+        var(--gold-deep),
+        var(--gold-light),
+        var(--gold),
+        var(--gold-light),
+        var(--gold-deep)
+      )
+      border-box;
+  background-size:
+    100% 100%,
+    300% 300%;
+  animation:
+    reveal-shiny-border 3s linear infinite,
+    reveal-legendary-pulse 1.6s ease-in-out 0.6s infinite;
+}
+
+/* The shockwave, centred on the card and timed to the slam's impact. */
+.reveal-shockwave {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 2;
+  width: 420px;
+  height: 420px;
+  margin: -210px 0 0 -210px;
+  pointer-events: none;
+}
+
+/* The gold flash at the centre of the impact. */
+.reveal-shockwave::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    var(--gold-light) 0%,
+    color-mix(in srgb, var(--gold) 70%, transparent) 30%,
+    transparent 65%
+  );
+  opacity: 0;
+  animation: reveal-shockwave-flash 0.6s ease-out 0.48s forwards;
+}
+
+@keyframes reveal-shockwave-flash {
+  0% {
+    opacity: 0;
+    transform: scale(0.35);
+  }
+  20% {
+    opacity: 0.95;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1);
+  }
+}
+
+/* Three rings, one just after another. */
+.reveal-shockwave span {
+  position: absolute;
+  inset: 0;
+  border: 5px solid var(--gold);
+  border-radius: 50%;
+  box-shadow:
+    0 0 14px var(--gold),
+    inset 0 0 14px var(--gold);
+  opacity: 0;
+  animation: reveal-shockwave-ring 0.8s cubic-bezier(0.15, 0.7, 0.3, 1) 0.48s
+    forwards;
+}
+
+.reveal-shockwave span:nth-child(2) {
+  animation-delay: 0.58s;
+}
+
+.reveal-shockwave span:nth-child(3) {
+  animation-delay: 0.68s;
+}
+
+@keyframes reveal-shockwave-ring {
+  0% {
+    opacity: 1;
+    transform: scale(0.3);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1);
+  }
+}
+
 /* ---------- Below the card ---------- */
 
 /* The little row of fish already flipped. */
@@ -654,6 +780,7 @@
   .reveal-card .reveal-card-inner,
   .reveal-card .reveal-back,
   .reveal-card .reveal-front,
+  .reveal-card .reveal-front::before,
   .reveal-card .reveal-front::after,
   .reveal-seen li,
   .reveal-stack .reveal-card,
@@ -661,6 +788,11 @@
     animation: none !important;
   }
   .reveal-card .reveal-front::after {
+    display: none;
+  }
+  /* No flash, sparkle burst or shockwave. The foil above stays still. */
+  .reveal-burst,
+  .reveal-shockwave {
     display: none;
   }
   .reveal-rare:not(.is-flipped) .reveal-back,

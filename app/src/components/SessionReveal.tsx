@@ -26,10 +26,10 @@ function SessionReveal({ catches }: SessionRevealProps) {
   const [index, setIndex] = useState(0);
   // [2] Whether that card has been flipped face-up yet.
   const [flipped, setFlipped] = useState(false);
-  // Whether a flipped shiny has finished landing, so it can follow the mouse
-  // without fighting the flip and slam animations.
+  // Whether a flipped holo card (shiny or legendary) has finished landing, so
+  // it can follow the mouse without fighting the flip and slam animations.
   const [canTilt, setCanTilt] = useState(false);
-  // Whether the cursor is currently tilting the shiny card.
+  // Whether the cursor is currently tilting the holo card.
   const [tilting, setTilting] = useState(false);
 
   // [3] Worked out from the state above, not stored: once the index has gone
@@ -50,14 +50,13 @@ function SessionReveal({ catches }: SessionRevealProps) {
     }
   }
 
-  // The big slam is the last part of a shiny's flip. Once it ends, the card
-  // is free to follow the mouse. The target check ignores animations on the
-  // elements inside the card.
+  // The big slam is the last part of a holo card's flip (only shinies and
+  // legendaries get it). Once it ends, the card is free to follow the mouse.
+  // The target check ignores animations on the elements inside the card.
   function finishLanding(event: React.AnimationEvent<HTMLButtonElement>) {
     if (
       event.target === event.currentTarget &&
-      event.animationName === "reveal-slam-big" &&
-      current.isShiny
+      event.animationName === "reveal-slam-big"
     ) {
       setCanTilt(true);
     }
@@ -124,6 +123,7 @@ function SessionReveal({ catches }: SessionRevealProps) {
     "reveal-card",
     `reveal-${rarity}`,
     current.isShiny ? "reveal-shiny" : "",
+    current.isShiny || rarity === "legendary" ? "reveal-holo" : "",
     flipped ? "is-flipped" : "",
     tilting ? "is-tilting" : "",
   ].join(" ");
@@ -136,11 +136,12 @@ function SessionReveal({ catches }: SessionRevealProps) {
 
   // [8] Good fish get slammed down onto the pile when flipped, which makes
   // the cards underneath jolt. A legendary slams harder.
-  const isGood = current.isShiny || rarity === "rare" || rarity === "legendary";
+  const isLegendary = rarity === "legendary";
+  const isGood = current.isShiny || rarity === "rare" || isLegendary;
   const stackClasses = [
     "reveal-stack",
     flipped && isGood ? "is-slammed" : "",
-    rarity === "legendary" || current.isShiny ? "slam-big" : "",
+    isLegendary || current.isShiny ? "slam-big" : "",
   ].join(" ");
 
   return (
@@ -209,6 +210,19 @@ function SessionReveal({ catches }: SessionRevealProps) {
             </span>
           )}
         </button>
+
+        {/* The golden shockwave as a legendary hits the pile. */}
+        {isLegendary && flipped && (
+          <span
+            key={`${current.id}-shockwave`}
+            className="reveal-shockwave"
+            aria-hidden="true"
+          >
+            <span />
+            <span />
+            <span />
+          </span>
+        )}
       </div>
 
       <p className="reveal-prompt muted">

@@ -55,12 +55,14 @@ function Collection({
         // into a holo card and shows the shiny sprite (permanently, even if
         // the shiny has been sold).
         const shinyFound = shinyDiscoveries.includes(fish.id);
+        // A legendary's holo card gets a gold frame on top of the rainbow.
+        const legendaryShiny = shinyFound && fish.rarity === "legendary";
         return (
           <div
             key={fish.id}
             className={`panel collection-card${
               shinyFound ? " shiny-border shiny-card" : ""
-            }`}
+            }${legendaryShiny ? " legendary-shiny" : ""}`}
           >
             {shinyFound && (
               <span className="shiny-sparkles" aria-hidden="true">

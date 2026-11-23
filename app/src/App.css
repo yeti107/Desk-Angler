@@ -32,6 +32,10 @@
   --rare-text: #1f4f9a;
   --legendary-bg: #fdefc8;
   --legendary-text: #8a5a00;
+  /* Legendary foil and frames. Bright enough for light and dark mode. */
+  --gold: #ffc531;
+  --gold-light: #fff0a8;
+  --gold-deep: #d98f00;
 
   /* Shiny fish: a shimmering pastel border and sparkles. Placeholder colours,
      to revisit. */

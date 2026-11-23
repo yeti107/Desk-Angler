@@ -181,6 +181,57 @@
   }
 }
 
+/* ---------- Legendary shiny ----------
+   The same holo card, with gold worked into the foil and a shimmering gold
+   frame, glow and sparkles. Three classes so it wins over .shiny-card. */
+.collection-card.shiny-card.legendary-shiny {
+  background:
+    linear-gradient(
+        120deg,
+        color-mix(in srgb, var(--shiny-1) 22%, transparent),
+        color-mix(in srgb, var(--gold) 30%, transparent),
+        color-mix(in srgb, var(--shiny-2) 22%, transparent),
+        color-mix(in srgb, var(--shiny-1) 22%, transparent)
+      )
+      padding-box,
+    linear-gradient(var(--surface), var(--surface)) padding-box,
+    linear-gradient(
+        120deg,
+        var(--gold-deep),
+        var(--gold-light),
+        var(--gold),
+        var(--gold-light),
+        var(--gold-deep)
+      )
+      border-box;
+  background-size: 300% 300%, 100% 100%, 300% 300%;
+  animation:
+    shiny-card-shimmer 6s linear infinite,
+    legendary-shiny-glow 3s ease-in-out infinite;
+}
+
+@keyframes legendary-shiny-glow {
+  0%,
+  100% {
+    box-shadow:
+      0 0 14px color-mix(in srgb, var(--gold) 70%, transparent),
+      0 3px 0 var(--shadow);
+  }
+  50% {
+    box-shadow:
+      0 0 24px color-mix(in srgb, var(--gold) 95%, transparent),
+      0 3px 0 var(--shadow);
+  }
+}
+
+.legendary-shiny .shiny-sparkles span:nth-child(odd) {
+  background: var(--gold);
+}
+
+.legendary-shiny .shiny-sparkles span:nth-child(even) {
+  background: var(--gold-light);
+}
+
 /* A small shiny pill in front of a shiny catch in the card's list. */
 .collection-catches .catch-shiny {
   font-size: 0.65rem;
@@ -197,6 +248,12 @@
   .collection-card.shiny-card {
     box-shadow:
       0 0 14px color-mix(in srgb, var(--shiny-1) 70%, transparent),
+      0 3px 0 var(--shadow);
+  }
+  .collection-card.shiny-card.legendary-shiny {
+    animation: none;
+    box-shadow:
+      0 0 14px color-mix(in srgb, var(--gold) 70%, transparent),
       0 3px 0 var(--shadow);
   }
   .collection-card.shiny-card::after {
