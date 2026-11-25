@@ -154,3 +154,5 @@ target/
 .DS_Store
 # Personal session notes
 notes/
+
+*.db
